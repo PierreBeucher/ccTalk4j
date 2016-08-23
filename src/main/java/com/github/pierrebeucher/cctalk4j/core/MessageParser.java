@@ -1,5 +1,11 @@
 package com.github.pierrebeucher.cctalk4j.core;
 
+/**
+ * <code>MessageParser</code> parse raw byte arrays
+ * into <code>Message</code> instances.
+ * @author Pierre Beucher
+ *
+ */
 public interface MessageParser {
 
 	/**
@@ -28,6 +34,11 @@ public interface MessageParser {
 	 */
 	public byte destinationByte() throws MessageParsingException;
 	
+	/**
+	 * Extract the dataLength byte from the message.
+	 * @return
+	 * @throws MessageParsingException
+	 */
 	public byte dataLengthByte() throws MessageParsingException;
 	
 	/**

@@ -1,21 +1,21 @@
 package com.github.pierrebeucher.cctalk4j.core;
 
 /**
- * Thrown when an error occur using a <code>MessagePort</code>.
+ * Thrown when a timeout occur when reading/writing a <code>MessagePort<cpde>
  * @author Pierre Beucher
  *
  */
-public class MessagePortException extends MessageIOException{
+public class MessagePortTimeoutException extends MessagePortException {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3434196879215791310L;
 	
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1996178835692130739L;
-	
-	/**
-	 * 
-	 */
-	public MessagePortException() {
+	public MessagePortTimeoutException() {
 		super();
 	}
 
@@ -25,7 +25,7 @@ public class MessagePortException extends MessageIOException{
 	 * @param enableSuppression
 	 * @param writableStackTrace
 	 */
-	protected MessagePortException(String message, Throwable cause, boolean enableSuppression,
+	public MessagePortTimeoutException(String message, Throwable cause, boolean enableSuppression,
 			boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
@@ -34,22 +34,22 @@ public class MessagePortException extends MessageIOException{
 	 * @param message
 	 * @param cause
 	 */
-	public MessagePortException(String message, Throwable cause) {
+	public MessagePortTimeoutException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
 	/**
 	 * @param message
 	 */
-	public MessagePortException(String message) {
+	public MessagePortTimeoutException(String message) {
 		super(message);
 	}
 
 	/**
 	 * @param cause
 	 */
-	public MessagePortException(Throwable cause) {
+	public MessagePortTimeoutException(Throwable cause) {
 		super(cause);
 	}
-	
+
 }

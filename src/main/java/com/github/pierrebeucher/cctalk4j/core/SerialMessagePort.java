@@ -88,7 +88,7 @@ public class SerialMessagePort implements MessagePort{
 		} catch (SerialPortException e) {
 			throw new MessagePortException(e);
 		} catch (SerialPortTimeoutException e) {
-			throw new MessagePortException(e);
+			throw new MessagePortTimeoutException(e);
 		}
 	}
 }

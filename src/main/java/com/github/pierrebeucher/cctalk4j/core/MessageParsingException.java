@@ -1,6 +1,13 @@
 package com.github.pierrebeucher.cctalk4j.core;
 
-public class MessageParsingException extends CcTalkException{
+/**
+ * Thrown when a message parsing exception occur, i.e. when
+ * a message does not match the appropriate message structure
+ * (destination, header, data, etc.)
+ * @author Pierre Beucher
+ *
+ */
+public class MessageParsingException extends MessageIOException{
 
 	/**
 	 * 
