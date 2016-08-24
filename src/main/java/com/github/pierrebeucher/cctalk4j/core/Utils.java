@@ -128,5 +128,14 @@ public class Utils {
 	   System.arraycopy(b, 0, result, a.length, b.length);
 	   return result;
 	}
+	
+	/**
+	 * Convert the given boolean into a byte.
+	 * @param b byte to convert
+	 * @return 1 for true, 0 for false
+	 */
+	public static byte boolToByte(boolean b){
+		return (byte) (b ? 1 : 0 );
+	}
 
 }

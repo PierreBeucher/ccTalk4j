@@ -169,4 +169,14 @@ public class UtilsTest {
 		byte[] expected = new byte[]{1,2,3};
 		Assert.assertEquals(actual, expected);
 	}
+	
+	@Test
+	public void boolToByte_true(){
+		Assert.assertEquals(Utils.boolToByte(true), (byte)1);
+	}
+	
+	@Test
+	public void boolToByte_false(){
+		Assert.assertEquals(Utils.boolToByte(false), (byte)0);
+	}
 }

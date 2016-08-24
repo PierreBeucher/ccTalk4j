@@ -7,11 +7,17 @@ package com.github.pierrebeucher.cctalk4j.core;
  */
 public enum Header {
 	
+	//since the header set is not full
+	//it is best to keep spaces between
+	//discontinued header values
 	SIMPLE_POLL(254),
 	
 	REQUEST_MANUFACTURER_ID(246),
 	REQUEST_EQUIPMENT_CATEGORY_ID(245),
 	REQUEST_PRODUCT_CODE(244),
+	
+	MODIFY_MASTER_INHIBIT_STATUS(228),
+	REQUEST_MASTER_INHIBIT_STATUS(227),
 	
 	REQUEST_BUILD_CODE(192),
 	

@@ -44,7 +44,7 @@ public abstract class AbstractDevice implements Device {
 	 */
 	private static final byte[] EMPTY_DATA_BYTE_ARRAY = new byte[]{};
 	
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private MessagePort port;
 	
@@ -153,14 +153,27 @@ public abstract class AbstractDevice implements Device {
 	}
 	
 	/**
-	 * Send a request expecting a single response.
-	 * @param request request to send
+	 * Send a request with no data expecting a single response.
+	 * @param requestHeader header to use 
 	 * @return response obtained
 	 * @throws MessageParsingException 
 	 * @throws MessagePortException 
 	 */
 	protected Message requestResponse(Header requestHeader) throws MessagePortException, MessageParsingException{
 		writeMessage(buildMessage(requestHeader));
+		return readMessage();
+	}
+	
+	/**
+	 * Send a request with data payload expecting a single response.
+	 * @param requestHeader header to use
+	 * @param data data payload
+	 * @return response obtained
+	 * @throws MessagePortException
+	 * @throws MessageParsingException
+	 */
+	protected Message requestResponse(Header requestHeader, byte[] data) throws MessagePortException, MessageParsingException{
+		writeMessage(buildMessage(requestHeader, data));
 		return readMessage();
 	}
 	
