@@ -2,12 +2,16 @@ package com.github.pierrebeucher.cctalk4j.device.bill.validator;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
+
+import java.util.BitSet;
+
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
+import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
@@ -48,6 +52,26 @@ public class BillValidatorTest {
 		billValidator.modifyMasterInhibitStatus(false);
 		boolean inhibit = billValidator.requestMasterInhibitStatus();
 		Assert.assertEquals(inhibit, false);
+	}
+	
+	@Test
+	public void requestInhibitStatus() throws MessageIOException, UnexpectedContentException{
+		byte inhibitMask1 = Byte.parseByte("00001010", 2); 
+		byte inhibitMask2 = Byte.parseByte("00000000", 2);
+		InhibitMask expected = new InhibitMask(BitSet.valueOf(new byte[]{inhibitMask1, inhibitMask2}));
+		billValidator.modifyInhibitStatus(expected);
+		InhibitMask actual = billValidator.requestInhibitStatus();
+		Assert.assertEquals(actual, expected);
+	}
+	
+	@Test
+	public void modifyInhibitStatus() throws MessageIOException, UnexpectedContentException{
+		byte inhibitMask1 = Byte.parseByte("00001110", 2); 
+		byte inhibitMask2 = Byte.parseByte("00000000", 2);
+		InhibitMask expected = new InhibitMask(BitSet.valueOf(new byte[]{inhibitMask1, inhibitMask2}));
+		billValidator.modifyInhibitStatus(expected);
+		InhibitMask actual = billValidator.requestInhibitStatus();
+		Assert.assertEquals(actual, expected);
 	}
 	
 	@AfterClass

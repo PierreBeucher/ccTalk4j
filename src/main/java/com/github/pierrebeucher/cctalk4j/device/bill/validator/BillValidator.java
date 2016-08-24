@@ -7,11 +7,13 @@ import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.AbstractDevice;
 import com.github.pierrebeucher.cctalk4j.device.Device;
+import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillEventBufferResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BooleanResponseWrapper;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.InhibitStatusResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
@@ -55,5 +57,26 @@ public class BillValidator extends AbstractDevice implements Device {
 				new byte[]{Utils.boolToByte(inhibitStatus)});
 		AckWrapper.wrap(response);
 	}
-
+	
+	/**
+	 * Request the inhibit status using Header 230. Result is returned as BitSet.
+	 * @return
+	 * @throws MessageIOException
+	 * @throws UnexpectedContentException
+	 */
+	public InhibitMask requestInhibitStatus() throws MessageIOException, UnexpectedContentException{
+		Message response = requestResponse(Header.REQUEST_INHIBIT_STATUS);
+		return new InhibitMask(InhibitStatusResponseWrapper.wrap(response).bitSet());
+	}
+	
+	/**
+	 * Modify the inhibit status using Header 231.
+	 * @param mask inhibit masks to set
+	 * @throws MessageIOException
+	 * @throws UnexpectedContentException
+	 */
+	public void modifyInhibitStatus(InhibitMask mask) throws MessageIOException, UnexpectedContentException{
+		Message response = requestResponse(Header.MODIFY_INHIBIT_STATUS, mask.bytes());
+		AckWrapper.wrap(response);
+	}
 }

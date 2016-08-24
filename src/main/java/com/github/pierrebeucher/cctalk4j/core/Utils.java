@@ -137,5 +137,18 @@ public class Utils {
 	public static byte boolToByte(boolean b){
 		return (byte) (b ? 1 : 0 );
 	}
+	
+	/**
+	 * Convert <i>strictly</i> the given byte into a boolean. 
+	 * @param b byte to convert into boolean, either 0 o 1
+	 * @return true for 1, false for 0.
+	 * @throws IllegalArgumentException if byte value is neither 0 nor 1
+	 */
+	public static boolean byteToBool(byte b) throws IllegalArgumentException{
+		if(b != 0 && b != 1){
+			throw new IllegalArgumentException("Byte value must be 0 or 1, but is: " + b);
+		}
+		return b == 0 ? false : true;
+	}
 
 }

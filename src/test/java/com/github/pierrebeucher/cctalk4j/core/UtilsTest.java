@@ -3,6 +3,7 @@ package com.github.pierrebeucher.cctalk4j.core;
 import java.math.BigInteger;
 
 import org.testng.Assert;
+import org.testng.Assert.ThrowingRunnable;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.Utils;
@@ -178,5 +179,37 @@ public class UtilsTest {
 	@Test
 	public void boolToByte_false(){
 		Assert.assertEquals(Utils.boolToByte(false), (byte)0);
+	}
+	
+	@Test
+	public void byteToBool_true(){
+		Assert.assertTrue(Utils.byteToBool((byte)1));
+	}
+	
+	@Test
+	public void byteToBool_false(){
+		Assert.assertFalse(Utils.byteToBool((byte)0));
+	}
+	
+	@Test
+	public void byteToBool_err_minus_1(){
+		ThrowingRunnable r = new ThrowingRunnable(){
+			@Override
+			public void run() throws Throwable {
+				Utils.byteToBool((byte)-1);
+			}
+		};
+		Assert.assertThrows(IllegalArgumentException.class, r);
+	}
+	
+	@Test
+	public void byteToBool_err_2(){
+		ThrowingRunnable r = new ThrowingRunnable(){
+			@Override
+			public void run() throws Throwable {
+				Utils.byteToBool((byte)2);
+			}
+		};
+		Assert.assertThrows(IllegalArgumentException.class, r);
 	}
 }
