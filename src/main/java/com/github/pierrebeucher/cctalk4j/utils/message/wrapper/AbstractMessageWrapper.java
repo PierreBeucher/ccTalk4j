@@ -17,7 +17,6 @@ public abstract class AbstractMessageWrapper implements MessageWrapper {
 			throw new NullPointerException("Message cannot be null.");
 		}
 		this.message = message;
-		wrapContent();
 	}
 
 	public Message getWrappedMessage() {

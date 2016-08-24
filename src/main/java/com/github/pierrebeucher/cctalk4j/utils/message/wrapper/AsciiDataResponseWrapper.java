@@ -12,7 +12,13 @@ import com.github.pierrebeucher.cctalk4j.core.Message;
  */
 public class AsciiDataResponseWrapper extends ResponseWrapper{
 
-	public AsciiDataResponseWrapper(Message message) throws UnexpectedContentException {
+	public static AsciiDataResponseWrapper wrap(Message m) throws UnexpectedContentException{
+		AsciiDataResponseWrapper mw = new AsciiDataResponseWrapper(m);
+		mw.wrapContent();
+		return mw;
+	}
+	
+	protected AsciiDataResponseWrapper(Message message) throws UnexpectedContentException {
 		super(message);
 	}
 

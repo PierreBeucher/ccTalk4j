@@ -175,7 +175,7 @@ public abstract class AbstractDevice implements Device {
 	 */
 	protected String requestAsciiResponse(Header requestHeader) throws MessagePortException, MessageParsingException, UnexpectedContentException{
 		Message m = requestResponse(requestHeader);
-		return new AsciiDataResponseWrapper(m).getAsciiData();
+		return AsciiDataResponseWrapper.wrap(m).getAsciiData();
 	}
 
 	@Override

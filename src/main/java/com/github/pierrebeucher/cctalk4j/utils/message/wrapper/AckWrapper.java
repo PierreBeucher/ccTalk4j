@@ -11,7 +11,9 @@ import com.github.pierrebeucher.cctalk4j.core.Message;
 public class AckWrapper extends ResponseWrapper {
 	
 	public static AckWrapper wrap(Message m) throws UnexpectedContentException{
-		return new AckWrapper(m);
+		AckWrapper mw = new AckWrapper(m);
+		mw.wrapContent();
+		return mw;
 	}
 	
 	private AckWrapper(Message message) throws UnexpectedContentException {

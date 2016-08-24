@@ -6,7 +6,6 @@ import org.testng.annotations.Test;
 import com.github.pierrebeucher.cctalk4j.core.CRCChecksumMessage;
 import com.github.pierrebeucher.cctalk4j.core.Header;
 import com.github.pierrebeucher.cctalk4j.core.Message;
-import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.SerialMessagePort;

@@ -5,9 +5,7 @@ import org.testng.Assert.ThrowingRunnable;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.CRCChecksumMessage;
-import com.github.pierrebeucher.cctalk4j.core.CRCChecksumMessageParser;
 import com.github.pierrebeucher.cctalk4j.core.Message;
-import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
 
 public class CRCChecksumMessageParserTest {
