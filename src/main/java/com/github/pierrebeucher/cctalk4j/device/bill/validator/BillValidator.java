@@ -8,10 +8,12 @@ import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.AbstractDevice;
 import com.github.pierrebeucher.cctalk4j.device.Device;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
+import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillEventBufferResponseWrapper;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BooleanResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.InhibitStatusResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
@@ -78,5 +80,28 @@ public class BillValidator extends AbstractDevice implements Device {
 	public void modifyInhibitStatus(InhibitMask mask) throws MessageIOException, UnexpectedContentException{
 		Message response = requestResponse(Header.MODIFY_INHIBIT_STATUS, mask.bytes());
 		AckWrapper.wrap(response);
+	}
+	/**
+	 * Modify a bill ID using Header 158 and bill type identified in the given <code>Bill</code>
+	 * @param bill bill to modify
+	 * @throws MessageIOException
+	 * @throws UnexpectedContentException
+	 */
+	public void modifyBillId(Bill bill) throws MessageIOException, UnexpectedContentException{ 
+		Message response = requestResponse(Header.MODIFY_BILL_ID, bill.toByteArray());
+		AckWrapper.wrap(response);
+	}
+	
+	/**
+	 * Retrieve a bill id for the given bill type, using Header 157. 
+	 * @param billType bill type to request
+	 * @return identification of the given bill type as a <code>Bill</code>
+	 * @throws MessageIOException
+	 * @throws UnexpectedContentException
+	 */
+	public Bill requestBillId(byte billType) throws MessageIOException, UnexpectedContentException{
+		Message response = requestResponse(Header.REQUEST_BILL_ID, new byte[]{billType});
+		BillIdResponseWrapper wrapper = BillIdResponseWrapper.wrap(response);
+		return new Bill(billType, wrapper.getCountryCode(), wrapper.getValueCode(), wrapper.getIssueCode());	
 	}
 }

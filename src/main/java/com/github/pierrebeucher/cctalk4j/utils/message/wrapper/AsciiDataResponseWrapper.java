@@ -12,6 +12,8 @@ import com.github.pierrebeucher.cctalk4j.core.Message;
  */
 public class AsciiDataResponseWrapper extends ResponseWrapper{
 
+	private String asciiData;
+	
 	public static AsciiDataResponseWrapper wrap(Message m) throws UnexpectedContentException{
 		AsciiDataResponseWrapper mw = new AsciiDataResponseWrapper(m);
 		mw.wrapContent();
@@ -27,6 +29,8 @@ public class AsciiDataResponseWrapper extends ResponseWrapper{
 		if(message.getDataBytes().length == 0){
 			throwWrappingException("At least one data byte is expected.");
 		}
+		
+		this.asciiData = new String(message.getDataBytes(), Charset.forName("ASCII"));
 	}
 	
 	/**
@@ -34,7 +38,7 @@ public class AsciiDataResponseWrapper extends ResponseWrapper{
 	 * @return the ASCII data payload contained in the wrapped message
 	 */
 	public String getAsciiData(){
-		return new String(message.getDataBytes(), Charset.forName("ASCII"));
+		return this.asciiData;
 	}
 
 }
