@@ -14,15 +14,50 @@ import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 public class BillValidatorTest {
 
+	/*
+	 * Port used to communicate with the bill validator
+	 */
 	private String portCom = "COM6";
+	
+	/*
+	 * Address of the validator
+	 */
 	private byte address = 40;
+	
+	/*
+	 * instance of validator used for test (created by beforeClass)
+	 */
 	private BillValidator billValidator;
-	private Bill billType1 = new Bill((byte) 1, "XO", "0010", "A");
+	
+	/*
+	 * country code used by validator
+	 */
+	private String countryCode = "XO";
+	
+	/*
+	 * bill type used by validator
+	 */
+	private Bill billType1 = new Bill((byte) 1, countryCode, "0010", "A");
+	
+	/*
+	 * unprogrammed bill type for validator
+	 */
 	private byte unprogrammedBillType = 16;
+	
+	/*
+	 * scaling factor for the country code used by validator
+	 */
+	private short scalingFactor = 1000;
+	
+	/*
+	 * decimal place for the country code used by validator
+	 */
+	private byte decimalPlace = 0;
 	
 	@BeforeClass
 	public void beforeClass() throws MessagePortException{
@@ -113,6 +148,18 @@ public class BillValidatorTest {
 		}
 		
 		Assert.assertEquals(newBill, billAfter);
+	}
+	
+	@Test
+	public void requestCountryScalingFactor_scalingFactor() throws MessageIOException, UnexpectedContentException{
+		CountryScalingFactorWrapper wp = billValidator.requestCountryScalingFactor("XO");
+		Assert.assertEquals(wp.getScalingFactor(), this.scalingFactor);
+	}
+	
+	@Test
+	public void requestCountryScalingFactor_decimalPlace() throws MessageIOException, UnexpectedContentException{
+		CountryScalingFactorWrapper wp = billValidator.requestCountryScalingFactor("XO");
+		Assert.assertEquals(wp.getDecimalPlace(), this.decimalPlace);
 	}
 	
 	@AfterClass

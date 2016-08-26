@@ -1,5 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.device.bill.validator;
 
+import java.nio.charset.StandardCharsets;
+
 import com.github.pierrebeucher.cctalk4j.core.Header;
 import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
@@ -15,6 +17,7 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillEventBufferResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BooleanResponseWrapper;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.InhibitStatusResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
@@ -103,5 +106,25 @@ public class BillValidator extends AbstractDevice implements Device {
 		Message response = requestResponse(Header.REQUEST_BILL_ID, new byte[]{billType});
 		BillIdResponseWrapper wrapper = BillIdResponseWrapper.wrap(response);
 		return new Bill(billType, wrapper.getCountryCode(), wrapper.getValueCode(), wrapper.getIssueCode());	
+	}
+	
+	/**
+	 * Retrieve the country scaling factor for the given country code. 
+	 * @param countryCode country code for which to retrieve scaling factor
+	 * @return obtained country scaling factor
+	 * @throws MessageIOException
+	 * @throws UnexpectedContentException
+	 * @throws IllegalArgumentException
+	 */
+	public CountryScalingFactorWrapper requestCountryScalingFactor(String countryCode)
+				throws MessageIOException, UnexpectedContentException, IllegalArgumentException{
+		if(countryCode.length() > 2){
+			throw new IllegalArgumentException("Country code must not exceed 2 characters length.");
+		}
+		
+		Message response = requestResponse(
+				Header.REQUEST_COUNTRY_SCALING_FACTOR,
+				countryCode.getBytes(StandardCharsets.US_ASCII));
+		return CountryScalingFactorWrapper.wrap(response);
 	}
 }
