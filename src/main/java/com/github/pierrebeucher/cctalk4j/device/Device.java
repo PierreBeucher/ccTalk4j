@@ -1,7 +1,9 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
+import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
@@ -107,5 +109,12 @@ public interface Device {
 	 */
 	Object requestEncryptionSupport() throws MessageIOException, UnexpectedContentException;
 	
+	/**
+	 * Perform a self check. Based on header 232.
+	 * @return 
+	 * @throws MessageParsingException 
+	 * @throws MessagePortException 
+	 */
+	SelfCheckResponseWrapper performSelfCheck() throws MessageIOException, UnexpectedContentException;
 	
 }

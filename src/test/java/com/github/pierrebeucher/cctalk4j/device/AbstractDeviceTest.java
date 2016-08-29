@@ -9,6 +9,7 @@ import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.SerialMessagePort;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.CRCChecksumMessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 public class AbstractDeviceTest {
@@ -130,6 +131,18 @@ public class AbstractDeviceTest {
 			device.connect();
 			String id = device.requestProductCode();
 			Assert.assertEquals(id, productCode);
+		} finally {
+			device.disconnect();
+		}
+	}
+	
+	@Test
+	public void performSelfCheck_nominal() throws MessageIOException, UnexpectedContentException{
+		Device device =	this.buildTestDevice();
+		try{
+			device.connect();
+			SelfCheckResponseWrapper wp = device.performSelfCheck();
+			Assert.assertEquals(wp.faultCode(), SelfCheckResponseWrapper.NO_FAULT_DETECTED);
 		} finally {
 			device.disconnect();
 		}
