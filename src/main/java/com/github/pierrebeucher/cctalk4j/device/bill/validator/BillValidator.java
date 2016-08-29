@@ -1,6 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.device.bill.validator;
 
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 
 import com.github.pierrebeucher.cctalk4j.core.Header;
 import com.github.pierrebeucher.cctalk4j.core.Message;
@@ -16,6 +17,7 @@ import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillEventBufferResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWrapper;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillOperatingModeResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BooleanResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.InhibitStatusResponseWrapper;
@@ -166,5 +168,33 @@ public class BillValidator extends AbstractDevice implements Device {
 			}
 			throw new BillRoutingException(errMsg);
 		}
+	}
+	
+	/**
+	 * Modify the bill operating mode using Header 153. 
+	 * @param useStacker true to use stacker, false otherwise
+	 * @param useEscrow true to use escrow, false otherwise
+	 * @throws MessageIOException
+	 * @throws UnexpectedContentException
+	 */
+	public void modifyBillOperatingMode(boolean useStacker, boolean useEscrow) throws MessageIOException, UnexpectedContentException{
+		// {useStacker, useEscrow}
+		BitSet bitSet = new BitSet(2);
+		bitSet.set(0, useEscrow);
+		bitSet.set(1, useStacker);
+		
+		Message response = requestResponse(Header.MODIFY_BILL_OPERATING_MODE, bitSet.toByteArray());
+		AckWrapper.wrap(response);
+	}
+	
+	/**
+	 * Request the bill operating mod using Header 152.
+	 * @return bill operating mode response 
+	 * @throws UnexpectedContentException
+	 * @throws MessageIOException
+	 */
+	public BillOperatingModeResponseWrapper requestBillOperatingMode() throws UnexpectedContentException, MessageIOException{
+		Message response = requestResponse(Header.REQUEST_BILL_OPERATING_MODE);
+		return BillOperatingModeResponseWrapper.wrap(response);
 	}
 }

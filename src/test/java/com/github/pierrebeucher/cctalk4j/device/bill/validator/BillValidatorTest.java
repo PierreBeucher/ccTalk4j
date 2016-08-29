@@ -15,6 +15,7 @@ import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillOperatingModeResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
@@ -59,6 +60,16 @@ public class BillValidatorTest {
 	 * decimal place for the country code used by validator
 	 */
 	private byte decimalPlace = 0;
+	
+	/*
+	 * Escrow operating mode
+	 */
+	private boolean billOperatingModeEscrow = true;
+	
+	/*
+	 * Stacker operating mode
+	 */
+	private boolean billOperatingModeStacker = true;
 	
 	@BeforeClass
 	public void beforeClass() throws MessagePortException{
@@ -176,6 +187,36 @@ public class BillValidatorTest {
 			}
 		};
 		Assert.assertThrows(BillRoutingException.class, r);
+	}
+	
+	//@Test
+	//well, our bill validator does not seem to be able to change operating mode
+	//disabled for now until we contact find out why
+	//TODO 
+	public void modifyBillOperatingMode() throws MessageIOException, UnexpectedContentException{		
+		boolean escrowAfter = true;
+		boolean stackerAfter = false;
+		billValidator.modifyBillOperatingMode(escrowAfter, stackerAfter);
+		
+		try {
+			BillOperatingModeResponseWrapper responseAfter = billValidator.requestBillOperatingMode();
+			Assert.assertEquals(responseAfter.isEscrowUsed(), escrowAfter);
+			Assert.assertEquals(responseAfter.isStackerUsed(), stackerAfter);
+		} finally {
+			//reset value
+			try {
+				billValidator.modifyBillOperatingMode(billOperatingModeStacker, billOperatingModeEscrow);
+			} catch (Exception e) {
+				throw new RuntimeException("Cannot reset bill operating mode: " + e.getMessage(), e);
+			}
+		}	 	
+	}
+	
+	@Test
+	public void requestBillOperatingMode() throws UnexpectedContentException, MessageIOException{
+		BillOperatingModeResponseWrapper response = billValidator.requestBillOperatingMode();
+		Assert.assertEquals(response.isEscrowUsed(), billOperatingModeEscrow);
+		Assert.assertEquals(response.isStackerUsed(), billOperatingModeStacker);
 	}
 	
 	@AfterClass
