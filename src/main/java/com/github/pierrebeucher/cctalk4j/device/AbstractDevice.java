@@ -178,6 +178,19 @@ public abstract class AbstractDevice implements Device {
 	}
 	
 	/**
+	 * Send a request with a single byte data payload expecting a single response.
+	 * @param requestHeader header to use
+	 * @param data single byte data payload
+	 * @return response obtained
+	 * @throws MessagePortException
+	 * @throws MessageParsingException
+	 */
+	protected Message requestResponse(Header requestHeader, byte data) throws MessagePortException, MessageParsingException{
+		writeMessage(buildMessage(requestHeader, new byte[]{data}));
+		return readMessage();
+	}
+	
+	/**
 	 * Send a request expecting a single ASCII response, calling {@link #requestResponse(Header)}
 	 * and wrapping the message with a <code>AsciiDataResponseWrapper</code>.
 	 * @param request request to send

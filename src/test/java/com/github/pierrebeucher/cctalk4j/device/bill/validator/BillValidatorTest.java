@@ -6,6 +6,7 @@ import org.testng.annotations.BeforeClass;
 import java.util.BitSet;
 
 import org.testng.Assert;
+import org.testng.Assert.ThrowingRunnable;
 import org.testng.annotations.AfterClass;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
@@ -160,6 +161,21 @@ public class BillValidatorTest {
 	public void requestCountryScalingFactor_decimalPlace() throws MessageIOException, UnexpectedContentException{
 		CountryScalingFactorWrapper wp = billValidator.requestCountryScalingFactor("XO");
 		Assert.assertEquals(wp.getDecimalPlace(), this.decimalPlace);
+	}
+	
+	//@Test
+	//TODO define with IT tests
+	public void routeBill() throws MessageIOException, UnexpectedContentException, InterruptedException{
+		billValidator.modifyMasterInhibitStatus(true);
+		billValidator.modifyInhibitStatus(new InhibitMask(BitSet.valueOf(new byte[]{-1, -1})));
+		
+		ThrowingRunnable r = new ThrowingRunnable(){
+			@Override
+			public void run() throws Throwable {
+				billValidator.routeBill(BillValidator.ROUTE_CODE_SEND_BILL_CASHBOX_STACKER);
+			}
+		};
+		Assert.assertThrows(BillRoutingException.class, r);
 	}
 	
 	@AfterClass

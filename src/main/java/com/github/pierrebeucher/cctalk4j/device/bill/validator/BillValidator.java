@@ -19,6 +19,7 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWra
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BooleanResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.InhibitStatusResponseWrapper;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.RouteBillResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
@@ -27,7 +28,22 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContent
  *
  */
 public class BillValidator extends AbstractDevice implements Device {
-			
+	
+	/**
+	 * Used by {@link #routeBill(byte)} to return a bill
+	 */
+	public static final byte ROUTE_CODE_RETURN_BILL = 0;
+	
+	/**
+	 * Used by {@link #routeBill(byte)} to send a bill to the cashbox or stacker
+	 */
+	public static final byte ROUTE_CODE_SEND_BILL_CASHBOX_STACKER = 1;
+	
+	/**
+	 * Used by {@link #routeBill(byte)} to extend escrow timeout
+	 */
+	public static final byte ROUTE_CODE_EXTEND_ESCROW_TIMEOUT = -1; //255 in unsigned byte
+	
 	public BillValidator(MessagePort port, Class<? extends MessageBuilder> messageBuilderClass,
 			byte deviceAddress) {
 		super(port, messageBuilderClass, deviceAddress);
@@ -126,5 +142,29 @@ public class BillValidator extends AbstractDevice implements Device {
 				Header.REQUEST_COUNTRY_SCALING_FACTOR,
 				countryCode.getBytes(StandardCharsets.US_ASCII));
 		return CountryScalingFactorWrapper.wrap(response);
+	}
+	
+	/**
+	 * Commands the routing of a bill held in escrow.
+	 * Use {@link #ROUTE_CODE_EXTEND_ESCROW_TIMEOUT}, {@link #ROUTE_CODE_RETURN_BILL}
+	 * or {@link #ROUTE_CODE_SEND_BILL_CASHBOX_STACKER}.  
+	 * @param routeCode route code to apply
+	 * @throws UnexpectedContentException 
+	 * @throws MessageIOException  
+	 */
+	public void routeBill(byte routeCode) throws MessageIOException, BillRoutingException, UnexpectedContentException{
+		Message response = requestResponse(Header.ROUTE_BILL, routeCode);
+		RouteBillResponseWrapper wp = RouteBillResponseWrapper.wrap(response);
+		if(wp.isError()){
+			String errMsg = null;
+			if(wp.isErrorEscrowEmpty()){
+				errMsg = wp.getErrorCode() + ": escrow is empty.";
+			} else if (wp.isErrorFailedToRouteBill()) {
+				errMsg = wp.getErrorCode() + ": failed to route bill.";
+			} else {
+				errMsg = "Unknown error code: " + wp.getErrorCode();
+			}
+			throw new BillRoutingException(errMsg);
+		}
 	}
 }

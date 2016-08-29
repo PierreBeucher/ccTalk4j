@@ -72,6 +72,10 @@ public class SimpleChecksumMessage extends AbstractMessage {
 		return new byte[]{ checksum };
 	}
 
+	public byte getSource() {
+		return source;
+	}
+
 	public String getHexMessage() {
 		StringBuilder strBuilder = new StringBuilder(20 + 2 * data.length);
 		strBuilder.append(Utils.byteToHex(destination));
