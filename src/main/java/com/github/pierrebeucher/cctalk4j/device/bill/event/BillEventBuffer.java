@@ -8,6 +8,11 @@ import java.util.Arrays;
  *
  */
 public class BillEventBuffer {
+	
+	/**
+	 * The number of events contained in a single <code>BillEventBuffer</code>
+	 */
+	public static final int EVENT_BUFFER_SIZE = 5;
 
 	private BillEvent[] billEvents;
 	private byte eventCounter;
