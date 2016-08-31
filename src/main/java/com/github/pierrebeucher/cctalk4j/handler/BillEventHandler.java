@@ -1,8 +1,9 @@
 package com.github.pierrebeucher.cctalk4j.handler;
 
 import java.lang.Math;
-
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -14,8 +15,8 @@ import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEvent;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 
 /**
- * <p><code>BillEventHandler</code> is used to handler bill event buffers.
- * This class uses callbacks functions {@link #handleEvent(BillEvent)}
+ * <p><code>BillEventHandler</code> is used to handle bill event buffers.
+ * This class uses callbacks functions {@link #notifyNewEvent(BillEvent)}
  * and {@link #handleLostEvent(BillEventBuffer, BillEventBuffer)}
  * to monitor incoming events, fed using {@link #feed(BillEventBuffer)}.</p>
  * 
@@ -43,10 +44,10 @@ import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
  * 	handler.feed(buf3);
  * }</pre>
  * 
- * <code>handler.feed(buf1)</code> will trigger calls to {@link #handleEvent(BillEvent)}
+ * <code>handler.feed(buf1)</code> will trigger calls to {@link #notifyNewEvent(BillEvent)}
  * for eventA, eventB and eventC (in this order), <code>handler.feed(buf2)</code>
  * will not trigger any callback as there is no new events, and finally
- * <code>handler.feed(buf3)</code> will trigger calls to {@link #handleEvent(BillEvent)}
+ * <code>handler.feed(buf3)</code> will trigger calls to {@link #notifyNewEvent(BillEvent)}
  * with eventD and eventE. <p>
  * <p>Similarly, with something like this, <here the event counter between buf1 and buf2
  * is too large for a single <code>BillEventBuffer</code>: 
@@ -67,7 +68,7 @@ import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
  * @author Pierre Beucher
  *
  */
-public abstract class BillEventHandler {
+class BillEventHandler {
 	
 	/**
 	 * Empty bill event array returned by {@link #extractNewEvents(BillEventBuffer)} when
@@ -102,23 +103,46 @@ public abstract class BillEventHandler {
 	 */
 	private int eventBufferDequeMaxSize;
 	
+	/*
+	 * Collection of listeners to notify
+	 */
+	private Collection<BillEventListener> eventListeners;
+	
+	/*
+	 * Validator handler for which this event handler works 
+	 */
+	private BillValidatorHandler handler;
+	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
-	public BillEventHandler(int bufferDequeMaxSize) {
+	/**
+	 * Creates a new <code>BillEventHandler</code> working for the given <code>DeviceHandler</code>,
+	 * and with the given <code>Deque</code> size is
+	 * @param handler handler this event handler is working for
+	 * @param bufferDequeMaxSize maximum size of the internal <code>Deque</code>
+	 */
+	public BillEventHandler(BillValidatorHandler handler, int bufferDequeMaxSize) {
 		super();
+		this.handler = handler;
 		this.eventBufferDequeMaxSize = bufferDequeMaxSize;
 		this.eventBufferDeque = new LinkedBlockingDeque<BillEventBuffer>(bufferDequeMaxSize);
+		this.eventListeners = new ArrayList<BillEventListener>();
 	}
 	
-	public BillEventHandler() {
-		this(DEFAULT_MAX_EVENT_BUFFER_DEQUE_SIZE);
+	/**
+	 * Creates a new <code>BillEventHandler</code> working for the given <code>DeviceHandler</code>,
+	 * for which the internal <code>Deque</code> size is {@link #DEFAULT_MAX_EVENT_BUFFER_DEQUE_SIZE}
+	 * @param handler handler this event handler is working for
+	 */
+	public BillEventHandler(BillValidatorHandler handler) {
+		this(handler, DEFAULT_MAX_EVENT_BUFFER_DEQUE_SIZE);
 	}
 	
 	/**
 	 * <p>Feed a new <code>BillEventBuffer</code> to this <code>BillEventHandler</code>.
 	 * By feeding an event buffer, the handler will check for any new event by comparing
 	 * the currentEventCounter with the eventCounter held in the given buffer. If any
-	 * new event has been added, {@link #handleEvent(BillEvent)} will be called for each new events,
+	 * new event has been added, {@link #notifyNewEvent(BillEvent)} will be called for each new events,
 	 * in the order in which they appeared. Once any new events has been handled and any callback
 	 * triggered, the new eventBuffer is stacked in an internal <code>Stack</code>.</p>
 	 * 
@@ -144,9 +168,18 @@ public abstract class BillEventHandler {
 		//older events are to be processed first
 		//older events are at the end of the array
 		for(int i=events.length-1; i>=0; i--){
-			handleEvent(events[i]);
+			notifyNewEvent(events[i]);
 		}
 		pushEventBuffer(eventBuffer);
+	}
+	
+	/**
+	 * Add a <code>BillEventListener</code> to this <code>BillEventHandler</code>.
+	 * The added listener will be notified of any new or lost event. 
+	 * @param listener listener to add
+	 */
+	public void addListener(BillEventListener listener){
+		eventListeners.add(listener);
 	}
 	
 	/**
@@ -199,19 +232,12 @@ public abstract class BillEventHandler {
 				eventCounterDiff > BillEventBuffer.EVENT_BUFFER_SIZE){
 			BillEventBuffer previousBuffer = this.peekPreviousEventBuffer();
 			int lostEventCount = eventCounterDiff - BillEventBuffer.EVENT_BUFFER_SIZE;
-			notifyLostEvents(previousBuffer, newBuffer, lostEventCount);
+			notifyLostEvent(lostEventCount, previousBuffer, newBuffer);
 		}
 		
 		//extract most recent events
 		//do not extract more than the entire event array
 		return Arrays.copyOfRange(newBuffer.getBillEvents(), 0, Math.min(eventCounterDiff, newBuffer.getBillEvents().length));
-	}
-	
-	private void notifyLostEvents(BillEventBuffer previousBuffer, BillEventBuffer newBuffer, int lostEventCount){
-		logger.debug("{} events have been lost! Calling handLostEvent() with previousBuffer: {}, newBuffer: {}",
-				lostEventCount, previousBuffer, newBuffer);
-		
-		handleLostEvent(previousBuffer, newBuffer);
 	}
 	
 	/**
@@ -223,17 +249,27 @@ public abstract class BillEventHandler {
 	 * returns <code>true</code>
 	 * @param previousBuffer the previous buffer, or null if there are no previous buffer.
 	 * @param newBuffer the new buffer
+	 * @param count number of event lost
 	 */
-	protected abstract void handleLostEvent(BillEventBuffer previousBuffer, BillEventBuffer newBuffer);
+	private void notifyLostEvent(int count, BillEventBuffer previousBuffer, BillEventBuffer newBuffer){
+		for(BillEventListener listener : eventListeners){
+			listener.lostEvent(count, previousBuffer, newBuffer);
+		}
+	}
 	
 	/**
 	 * Called whenever a new event is fed to {@link #feed(BillEventBuffer)}.
-	 * Only new events will result in a a call to {@link #handleEvent(BillEvent)},
+	 * Only new events will result in a a call to {@link #notifyNewEvent(BillEvent)},
 	 * i.e. when the eventCounter is found to be different between the previous
-	 * and newly fed BillEventBuffer. Older events are processed first.
+	 * and newly fed BillEventBuffer. Oldest events are processed first.
 	 * @param e the new event
+	 * @throws DeviceHandlingException 
 	 */
-	protected abstract void handleEvent(BillEvent e);
+	private void notifyNewEvent(BillEvent e) {
+		for(BillEventListener listener : eventListeners){
+			listener.newEvent(handler, e);
+		}
+	}
 
 	/**
 	 * 
@@ -258,6 +294,14 @@ public abstract class BillEventHandler {
 	 */
 	public int getEventBufferQueueMaxSize() {
 		return eventBufferDequeMaxSize;
+	}
+
+	/**
+	 * 
+	 * @return the list of added event listeners
+	 */
+	public Collection<BillEventListener> getEventListeners() {
+		return eventListeners;
 	}
 	
 }

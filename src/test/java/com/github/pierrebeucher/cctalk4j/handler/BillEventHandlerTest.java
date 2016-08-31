@@ -30,8 +30,9 @@ public class BillEventHandlerTest {
 	 * @throws MessageIOException 
 	 */
 	//@Test
+	//desactivad for the moment, consuming too much time 
 	public void billEventHandlerEventCount() throws MessageIOException, UnexpectedContentException{
-		BillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
 		BillValidator validator = DeviceFactory.billValidatorSerialCRC("COM6", (byte)40);
 		try{
 			validator.connect();
@@ -88,19 +89,19 @@ public class BillEventHandlerTest {
 
 	@Test
 	public void feed_nominal() {
-		BillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
 		BillEventBuffer buf = new BillEventBuffer(new BillEvent[]{event00, event10, event00, event00, event00}, (byte)2);
 		handler.feed(buf);
 		
 		Assert.assertEquals(handler.getCurrentEventCounter(), 2);
 	}
 	
-	@Test()
+	@Test
 	public void feed_deque_recycling_atomic() {
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event10, event21, event42, event10, event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event42, event10}, (byte)2);
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event10, event21, event42}, (byte)3);
-		BillEventHandler handler = new MyBillEventHandler(1); //dequeue with 1 capacity
+		BillEventHandler handler = new BillEventHandler(null, 1); //dequeue with 1 capacity
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -108,12 +109,12 @@ public class BillEventHandlerTest {
 		Assert.assertEquals(handler.getEventBufferDeque().peekLast(), buf3);
 	}
 	
-	@Test()
+	@Test
 	public void feed_deque_recycling_2() {
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event10, event21, event42, event10, event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event42, event10}, (byte)2);
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event10, event21, event42}, (byte)3);
-		BillEventHandler handler = new MyBillEventHandler(2);
+		BillEventHandler handler = new BillEventHandler(null, 2);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -121,12 +122,12 @@ public class BillEventHandlerTest {
 		Assert.assertEquals(handler.getEventBufferDeque().peekLast(), buf3);
 	}
 	
-	@Test()
+	@Test
 	public void feed_deque_recycling_3() {
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event10, event21, event42, event10, event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event42, event10}, (byte)2);
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event10, event21, event42}, (byte)3);
-		BillEventHandler handler = new MyBillEventHandler(3);
+		BillEventHandler handler = new BillEventHandler(null, 3);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -136,7 +137,7 @@ public class BillEventHandlerTest {
 	
 	@Test
 	public void getCurrentEventCounter_onInstanciation() {
-		BillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
 		Assert.assertEquals(handler.getCurrentEventCounter(), 0);
 	}
 	
@@ -144,7 +145,7 @@ public class BillEventHandlerTest {
 	public void getCurrentEventCounter_onFeed() {
 		byte counter = 3;
 		BillEventBuffer buf = new BillEventBuffer(new BillEvent[]{event00, event10}, counter);
-		BillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
 		handler.feed(buf);
 		
 		Assert.assertEquals(handler.getCurrentEventCounter(), counter);
@@ -154,7 +155,7 @@ public class BillEventHandlerTest {
 	public void getEventBufferDeque() {
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event21, event10, event00}, (byte)3);
-		BillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		
@@ -172,11 +173,13 @@ public class BillEventHandlerTest {
 
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event21, event10, event00}, (byte)3);
-		MyBillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
+		TestBillEventListener listener = new TestBillEventListener();
+		handler.addListener(listener);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		
-		Assert.assertEquals(handler.getHandledEvents(), expected);
+		Assert.assertEquals(listener.getNotifiedEvents(), expected);
 	}
 	
 	@Test
@@ -210,7 +213,9 @@ public class BillEventHandlerTest {
 		BillEventBuffer buf5 = new BillEventBuffer(new BillEvent[]{event42, event42, event42, event42, event42}, (byte)15); //5
 		BillEventBuffer buf6 = new BillEventBuffer(new BillEvent[]{event21, event42, event42, event42, event42}, (byte)16); //6
 		BillEventBuffer buf7 = new BillEventBuffer(new BillEvent[]{event21, event10, event10, event21, event42}, (byte)19); //7
-		MyBillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
+		TestBillEventListener listener = new TestBillEventListener();
+		handler.addListener(listener);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -219,7 +224,7 @@ public class BillEventHandlerTest {
 		handler.feed(buf6);
 		handler.feed(buf7);
 		
-		Assert.assertEquals(handler.getHandledEvents(), expected);
+		Assert.assertEquals(listener.getNotifiedEvents(), expected);
 	}
 	
 	@Test
@@ -236,11 +241,13 @@ public class BillEventHandlerTest {
 		//simulate a counter reset 255 > 1
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event10, event00}, Utils.unsignedIntToByte(255));
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event21, event42, event10, event21, event10}, Utils.unsignedIntToByte(1));
-		MyBillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
+		TestBillEventListener listener = new TestBillEventListener();
+		handler.addListener(listener);
 		handler.feed(buf1);
 		handler.feed(buf2);
 	
-		Assert.assertEquals(handler.getHandledEvents(), expected);
+		Assert.assertEquals(listener.getNotifiedEvents(), expected);
 	}
 	
 	@Test
@@ -268,78 +275,76 @@ public class BillEventHandlerTest {
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event10, event21, event10, event42, event00}, Utils.unsignedIntToByte(253)); //2
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event42, event21, event42}, Utils.unsignedIntToByte(3)); //3
 		BillEventBuffer buf4 = new BillEventBuffer(new BillEvent[]{event21, event00, event00, event42, event42}, Utils.unsignedIntToByte(5)); //4
-		MyBillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
+		TestBillEventListener listener = new TestBillEventListener();
+		handler.addListener(listener);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
 		handler.feed(buf4);
 	
-		Assert.assertEquals(handler.getHandledEvents(), expected);
+		Assert.assertEquals(listener.getNotifiedEvents(), expected);
+	}
+	
+	@Test
+	public void notifyEvent(){
+		
 	}
 
 	@Test
-	public void handleLostEvent() {
+	public void notifyLostEvent() {
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event00, event00, event00, event00, event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event21, event10, event00, event21, event21}, (byte)7);
 		
 		//this should trigger a lost event callback
-		MyBillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
+		TestBillEventListener listener = new TestBillEventListener();
+		handler.addListener(listener);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		
-		Assert.assertEquals(handler.getLostEventPreviousBuffer(), buf1);
-		Assert.assertEquals(handler.getLostEventNewBuffer(), buf2);
+		Assert.assertEquals(listener.getLostEventPreviousBuffer(), buf1);
+		Assert.assertEquals(listener.getLostEventNewBuffer(), buf2);
+		Assert.assertEquals(listener.getLostEventCount(), (Integer)1);
 	}
 	
 	@Test
 	public void getBufferDequeMaxSize_default(){
-		BillEventHandler handler = new MyBillEventHandler();
+		BillEventHandler handler = new BillEventHandler(null);
 		Assert.assertEquals(handler.getEventBufferQueueMaxSize(), BillEventHandler.DEFAULT_MAX_EVENT_BUFFER_DEQUE_SIZE);
 	}
 	
 	@Test
 	public void getBufferDequeMaxSize_constructorParam(){
 		int size = 4242;
-		BillEventHandler handler = new MyBillEventHandler(size);
+		BillEventHandler handler = new BillEventHandler(null, size);
 		Assert.assertEquals(handler.getEventBufferQueueMaxSize(),size);
 	}
 	
-	/**
-	 * Small test class. Save any handled event in a queue,
-	 * and save latest buffer triggering a lost event callback.
-	 * @author Pierre Beucher
-	 *
-	 */
-	private class MyBillEventHandler extends BillEventHandler{
+	private class TestBillEventListener implements BillEventListener{
 		
-		/**
-		 * 
-		 */
-		public MyBillEventHandler() {
-			super();
-		}
-
-		/**
-		 * @param bufferDequeMaxSize
-		 */
-		public MyBillEventHandler(int bufferDequeMaxSize) {
-			super(bufferDequeMaxSize);
-		}
-
+		//every new event is added here
+		private Queue<BillEvent> notifiedEvents = new LinkedList<BillEvent>();
+		
+		//those are set once when lostEvent() is called
 		private BillEventBuffer lostEventPreviousBuffer;
 		private BillEventBuffer lostEventNewBuffer;
-		
-		private Queue<BillEvent> handledEvents = new LinkedList<BillEvent>();
+		private Integer lostEventCount;
 		
 		@Override
-		protected void handleLostEvent(BillEventBuffer previousBuffer, BillEventBuffer newBuffer) {
-			this.lostEventNewBuffer = newBuffer;
-			this.lostEventPreviousBuffer = previousBuffer;
+		public void newEvent(BillValidatorHandler handler, BillEvent event) {
+			this.notifiedEvents.add(event);
 		}
 		
 		@Override
-		protected void handleEvent(BillEvent e) {
-			handledEvents.add(e);
+		public void lostEvent(int lostEventCount, BillEventBuffer previousBuffer, BillEventBuffer newBuffer) {
+			this.lostEventPreviousBuffer = previousBuffer;
+			this.lostEventNewBuffer = newBuffer;
+			this.lostEventCount = lostEventCount;
+		}
+		
+		public Queue<BillEvent> getNotifiedEvents() {
+			return this.notifiedEvents;
 		}
 
 		public BillEventBuffer getLostEventPreviousBuffer() {
@@ -350,8 +355,8 @@ public class BillEventHandlerTest {
 			return lostEventNewBuffer;
 		}
 
-		public Queue<BillEvent> getHandledEvents() {
-			return handledEvents;
+		public Integer getLostEventCount() {
+			return lostEventCount;
 		}
-	}
+	};
 }

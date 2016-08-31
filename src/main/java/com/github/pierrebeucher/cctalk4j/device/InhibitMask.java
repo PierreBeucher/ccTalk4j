@@ -19,6 +19,16 @@ import java.util.BitSet;
  *
  */
 public class InhibitMask {
+	
+	/**
+	 * Mask representing the enabling of all bill/coins.
+	 */
+	public static final InhibitMask FULLY_ENABLING_MASK = new InhibitMask(BitSet.valueOf(new byte[]{-1, -1}));
+	
+	/**
+	 * Mask representing the inhibit of all bill/coins.
+	 */
+	public static final InhibitMask FULLY_INHIBITING_MASK = new InhibitMask(BitSet.valueOf(new byte[]{0, 0}));
 
 	private BitSet bitSet;
 	
