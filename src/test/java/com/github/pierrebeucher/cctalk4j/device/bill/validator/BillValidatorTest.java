@@ -174,9 +174,11 @@ public class BillValidatorTest {
 		Assert.assertEquals(wp.getDecimalPlace(), this.decimalPlace);
 	}
 	
+	//disabled for now, our validator seems to have issue with the route bill command
+	//the command does route the bill, but return value is erratic
 	//@Test
-	//TODO define with IT tests
 	public void routeBill() throws MessageIOException, UnexpectedContentException, InterruptedException{
+		//simulate bill acceptance
 		billValidator.modifyMasterInhibitStatus(true);
 		billValidator.modifyInhibitStatus(new InhibitMask(BitSet.valueOf(new byte[]{-1, -1})));
 		

@@ -45,7 +45,15 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContent
  * handler.stopInputAcceptance();
  * handler.terminate();
  * }
- * </pre>
+ * </pre> 
+ * </p>
+ * <p><b>How does it works?</b><br>
+ * On instantiation, a new <code>BillEventHandler</code> is created for
+ * this <code>BillValidatorHandler</code> and the handled <code>BillValidator</code>.
+ * When {@link #startCreditPolling()} is called, a thread is started and will periodically
+ * poll the <code>BillValidator</code> events and feed them to the <code>BillEventHandler</code>.
+ * The <code>BillEventHandler</code> will then notify any listener of the incoming events using
+ * defined callbacks functions. </p>
  * @author Pierre Beucher
  *
  */
@@ -228,6 +236,17 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			throw new DeviceHandlingException("Error while waiting for poller thread to die.", e);
 		}
 	}
+	
+	/**
+	 * Set the credit poll period, the interval of time between each credit when
+	 * polling the device.
+	 * @see #startCreditPolling()
+	 * @see #stopCreditPolling()
+	 * @param creditPollPeriod perido to set in ms
+	 */
+	public void setCreditPollPeriod(long creditPollPeriod) {
+		this.creditPollPeriod = creditPollPeriod;
+	}
 
 	@Override
 	public BillValidator getDevice() {
@@ -277,6 +296,13 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 		return billMap;
 	}
 
+	/**
+	 * This <code>Runnable</code> is used to perform the periodical credit poll. It will
+	 * perform calls to the <code>BillValidator</code> method <code>readBufferedNoteEvents()</code>
+	 * and feed the result to a <code>BillEventHandler</code> which may trigger related callbacks.
+	 * @author Pierre Beucher
+	 *
+	 */
 	public class BillValidatorCreditPoller extends CreditPollingRunnable<BillValidator>{
 
 		private BillEventHandler eventHandler;
