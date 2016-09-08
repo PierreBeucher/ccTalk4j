@@ -4,7 +4,7 @@ import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
 
-public class BillValidatorHandlerWithSimpleEventListenerTest {
+public class BillValidatorHandlerWithSimpleEventListenerIT {
 	
 	private byte address = 40;
 	private String comPort = "COM6";
@@ -24,7 +24,7 @@ public class BillValidatorHandlerWithSimpleEventListenerTest {
 		handler.addListener(new SimpleBillEventListener());
 		handler.initialise();
 		handler.startInputAcceptance();
-		Thread.sleep(15000);
+		Thread.sleep(30000);
 		handler.stopInputAcceptance();
 		handler.terminate();
 	}

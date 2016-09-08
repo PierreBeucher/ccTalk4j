@@ -11,7 +11,7 @@ import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.handler.AbstractDeviceHandler;
 import com.github.pierrebeucher.cctalk4j.handler.DeviceHandlingException;
 
-public class AbstractDeviceHandlerTest {
+public class AbstractDeviceHandlerIT {
 
 	private byte address = 40;
 	private String comPort = "COM6";

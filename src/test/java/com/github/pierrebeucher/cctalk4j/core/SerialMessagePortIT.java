@@ -11,7 +11,7 @@ import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.SerialMessagePort;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
 
-public class SerialMessagePortTest {
+public class SerialMessagePortIT {
 
 	/*
 	 * Com port used for test

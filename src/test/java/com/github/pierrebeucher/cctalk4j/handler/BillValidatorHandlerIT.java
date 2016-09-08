@@ -16,7 +16,7 @@ import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
 import com.github.pierrebeucher.cctalk4j.handler.BillValidatorHandler;
 import com.github.pierrebeucher.cctalk4j.handler.DeviceHandlingException;
 
-public class BillValidatorHandlerTest {
+public class BillValidatorHandlerIT {
 	
 	private byte address = 40;
 	private String comPort = "COM6";

@@ -19,7 +19,7 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillOperatingMode
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
-public class BillValidatorTest {
+public class BillValidatorIT {
 
 	/*
 	 * Port used to communicate with the bill validator

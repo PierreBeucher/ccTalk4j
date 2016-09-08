@@ -80,6 +80,7 @@ public class SimpleBillEventListener implements BillEventListener {
 	public void pendingCredit(BillValidatorHandler handler, BillEvent event){
 		try {
 			logger.info("Bill in escrow. Accepting.");
+			handler.getDevice().requestProductCode();
 			handler.getDevice().routeBill(BillValidator.ROUTE_CODE_SEND_BILL_CASHBOX_STACKER);
 		} catch (BillRoutingException | MessageIOException | UnexpectedContentException e) {
 			logger.error("Bill routing error, caused by: ", e);
