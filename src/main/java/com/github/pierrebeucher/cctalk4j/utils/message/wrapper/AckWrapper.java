@@ -16,6 +16,10 @@ public class AckWrapper extends ResponseWrapper {
 		return mw;
 	}
 	
+	public static boolean isAck(Message m){
+		return m.getDataBytes().length == 0 && m.getHeader() == Header.NONE.getValue();
+	}
+	
 	private AckWrapper(Message message) throws UnexpectedContentException {
 		super(message);
 	}

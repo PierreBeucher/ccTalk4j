@@ -57,4 +57,22 @@ public class AckWrapperTest {
 		AckWrapper wrapper = AckWrapper.wrap(msg);
 		Assert.assertEquals(wrapper.destination(), 1);
 	}
+	
+	@Test
+	public void isAck_true() throws MessageBuildException, IllegalArgumentException{
+		Message msg = buildMessage(Header.NONE, Utils.unsignedIntToByte(1), new byte[]{});
+		Assert.assertEquals(AckWrapper.isAck(msg), true);
+	}
+	
+	@Test
+	public void isAck_false_header() throws MessageBuildException, IllegalArgumentException{
+		Message msg = buildMessage(Header.MODIFY_BILL_ID, Utils.unsignedIntToByte(1), new byte[]{});
+		Assert.assertEquals(AckWrapper.isAck(msg), false);
+	}
+	
+	@Test
+	public void isAck_false_data() throws MessageBuildException, IllegalArgumentException{
+		Message msg = buildMessage(Header.NONE, Utils.unsignedIntToByte(1), new byte[]{42});
+		Assert.assertEquals(AckWrapper.isAck(msg), false);
+	}
 }

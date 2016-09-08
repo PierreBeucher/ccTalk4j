@@ -14,7 +14,7 @@ import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuildExcep
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AsciiDataResponseWrapper;
-import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckAckResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
@@ -235,9 +235,9 @@ public abstract class AbstractDevice implements Device {
 	}
 
 	@Override
-	public SelfCheckResponseWrapper performSelfCheck() throws MessageIOException, UnexpectedContentException {
+	public SelfCheckAckResponseWrapper performSelfCheck() throws MessageIOException, UnexpectedContentException {
 		Message response = requestResponse(Header.PERFORM_SELF_CHECK);
-		return SelfCheckResponseWrapper.wrap(response);
+		return SelfCheckAckResponseWrapper.wrap(response);
 	}
 
 	@Override
