@@ -202,6 +202,7 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			for(byte billType=1; billType<=128; billType++){
 				BillIdResponseWrapper billWp = device.requestBillId(billType);
 				if(!BillIdResponseWrapper.isProgrammed(billWp)){
+					logger.info("Stopping bill requesting at unprogrammed bill type: {}", billType);
 					break; //stop at first unprogrammed bill encountered
 				}
 				
@@ -210,10 +211,10 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 				
 				//calculate currency value and put new Bill in Map
 				try{
-					BigDecimal billCurrencyValue = calculateBillCurrencyValue(
-							billWp.getValueCode(), csfWp.getScalingFactor(), csfWp.getScalingFactor());
-					mapBill(new Bill(billType, billWp.getCountryCode(), billWp.getValueCode(),
-							billWp.getIssueCode(), billCurrencyValue));
+					BigDecimal billCurrencyValue = calculateBillCurrencyValue(billWp.getValueCode(), csfWp.getScalingFactor(), csfWp.getDecimalPlace());
+					Bill bill = new Bill(billType, billWp.getCountryCode(), billWp.getValueCode(), billWp.getIssueCode(), billCurrencyValue);
+					mapBill(bill);
+					logger.info("Bill requested for {}: {}", device, bill);
 				} catch (NumberFormatException e){
 					//skip bill if cannot calculate currency value...
 					logger.error("Cannot calculate bill currency value for {} with {}. Skipping bill.", billWp, csfWp, e);
@@ -224,34 +225,6 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			throw new DeviceHandlingException("Error requesting available bills and countries", e);
 		}
 	}
-
-//	private void requestProgrammedBills() throws DeviceHandlingException, MessageIOException, UnexpectedContentException{
-//		//request all bills and keep them in a Map
-//		//deduce the Bill value from previously requested scaling factor
-//		//deduce country code from the accepted bills
-//		//only 1 country code at a time can be handled
-//		deviceCountryCode = null;
-//		for(byte billType=1; billType<=128; billType++){
-//			
-//			//get bill and wrap around a Bill instance
-//			BillIdResponseWrapper billWp = device.requestBillId(billType);
-//			
-//			if(Bill.isProgrammed(bill)){
-//				logger.debug("Request bill id for bill {}: {}", billType, bill);
-//				mapBill(bill);
-//				
-//				//check the country code to ensure each bill have the same country
-//				if(deviceCountryCode == null){
-//					deviceCountryCode = bill.countryCode();
-//				} else if(!deviceCountryCode.equals(bill.countryCode())){
-//					throw new DeviceHandlingException("Device seems to accept bills for country code " + deviceCountryCode +
-//							" and " + bill.countryCode() + ", but only one country code can be handled at a time.");
-//				}
-//			} else {
-//				break;
-//			}
-//		}
-//	}
 	
 	private void clearBillMap(){
 		this.billMap.clear();
@@ -276,16 +249,11 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			return countryScalingFactorMap.get(countryCode);
 		} else {
 			CountryScalingFactorWrapper csfWp = device.requestCountryScalingFactor(countryCode);
+			logger.info("Requesting scaling factor for {}: {}", countryCode, csfWp);
 			countryScalingFactorMap.put(countryCode, csfWp);
 			return csfWp;
 		}
 	}
-	
-//	private void requestCountryScalingFactor() throws MessageIOException, UnexpectedContentException, IllegalArgumentException{
-//		CountryScalingFactorWrapper scalingFactorWrapper = device.requestCountryScalingFactor(deviceCountryCode);
-//		this.deviceScalingFactor = scalingFactorWrapper.getScalingFactor();
-//		this.deviceDecimalPlace = Utils.byteToUnsignedInt(scalingFactorWrapper.getDecimalPlace());
-//	}
 	
 	private void requestCurrencyRevision(){
 		//TODO
@@ -339,30 +307,6 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 		return (BillValidator) super.getDevice();
 	}
 
-//	/**
-//	 * 
-//	 * @return the handled <code>Device</code> country code.
-//	 */
-//	public String getDeviceCountryCode() {
-//		return deviceCountryCode;
-//	}
-//
-//	/**
-//	 * 
-//	 * @return the handled <code>Device</code> scaling factor.
-//	 */
-//	public int getDeviceScalingFactor() {
-//		return deviceScalingFactor;
-//	}
-//
-//	/**
-//	 * 
-//	 * @return the handled <code>Device</code> scaling factor decimal place.
-//	 */
-//	public int getDeviceDecimalPlace() {
-//		return deviceDecimalPlace;
-//	}
-	
 	/**
 	 * 
 	 * @return the credit poll period when accepting input

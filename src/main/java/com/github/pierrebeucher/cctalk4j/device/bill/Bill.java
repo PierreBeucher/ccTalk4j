@@ -108,7 +108,7 @@ public class Bill {
 	 */
 	@Override
 	public String toString() {
-		return billType + ":" + rawIdentification();
+		return billType + ":" + rawIdentification() + "(" +  currencyValue.toPlainString() + ")";
 	}
 
 	/**

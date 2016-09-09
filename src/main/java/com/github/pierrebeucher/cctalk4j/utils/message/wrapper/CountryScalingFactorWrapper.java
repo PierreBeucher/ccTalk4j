@@ -65,4 +65,9 @@ public class CountryScalingFactorWrapper extends ResponseWrapper {
 	public int getScalingFactor() {
 		return scalingFactor;
 	}
+	
+	@Override
+	public String toString() {
+		return "[scalingFactor=" + scalingFactor + ", decimalPlace=" + decimalPlace + "]";
+	}
 }

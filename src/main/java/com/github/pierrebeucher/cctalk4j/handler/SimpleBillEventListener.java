@@ -3,13 +3,11 @@ package com.github.pierrebeucher.cctalk4j.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
+import com.github.pierrebeucher.cctalk4j.core.CcTalkException;
 import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEvent;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
-import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillRoutingException;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
-import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
  * <p>Simple implementation of <code>BillEventListener</code>,
@@ -44,31 +42,44 @@ public class SimpleBillEventListener implements BillEventListener {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	public void newEvent(BillValidatorHandler handler, BillEvent e) {
-		logger.info("New event: {}", e);
-		
-		switch(e.getEventType()){
-		case PENDING_CREDIT:
-			pendingCredit(handler, e);
-			break;
-		case CREDIT:
-			credit(handler, e);
-			break;
-		case REJECT:
-			reject(handler, e);
-			break;
-		case STATUS:
-			status(handler, e);
-			break;
-		case FRAUD_ATTEMPT:
-			fraudAttempt(handler, e);
-			break;
-		case FATAL_ERROR:
-			fatalError(handler, e);
-			break;
-		default:
-			logger.error("Unknown event type for {} : {}", e, e.getEventType());
+	public void newEvent(BillValidatorHandler handler, BillEvent event) {
+		logger.info("New event: {}", event);
+		try{
+			switch(event.getEventType()){
+			case PENDING_CREDIT:
+				pendingCredit(handler, event, generateBillFromBillEvent(handler, event));
+				break;
+			case CREDIT:
+				credit(handler, event, generateBillFromBillEvent(handler, event));
+				break;
+			case REJECT:
+				reject(handler, event);
+				break;
+			case STATUS:
+				status(handler, event);
+				break;
+			case FRAUD_ATTEMPT:
+				fraudAttempt(handler, event);
+				break;
+			case FATAL_ERROR:
+				fatalError(handler, event);
+				break;
+			default:
+				logger.error("Unknown event type for {} : {}", event, event.getEventType());
+			}
+		} catch(CcTalkException error){
+			unhandledCcTalkException(handler, event, error);
 		}
+	}
+	
+	protected Bill generateBillFromBillEvent(BillValidatorHandler handler, BillEvent event) throws CcTalkException {
+		byte billType = event.getResultA();
+		Bill bill = handler.getBillMap().get(billType);
+		if(bill == null){
+			logger.error("Bill type {} has been accepted and held in escrow, but is not known by the device handler. Returning bill.");
+			handler.getDevice().routeBill(BillValidator.ROUTE_CODE_RETURN_BILL);
+		}
+		return bill;
 	}
 	
 	/**
@@ -77,54 +88,60 @@ public class SimpleBillEventListener implements BillEventListener {
 	 * @param e raw event read
 	 * @param bill bill described by the event
 	 */
-	public void pendingCredit(BillValidatorHandler handler, BillEvent event){
-		try {
-			logger.info("Bill in escrow. Accepting.");
-			handler.getDevice().requestProductCode();
-			handler.getDevice().routeBill(BillValidator.ROUTE_CODE_SEND_BILL_CASHBOX_STACKER);
-		} catch (BillRoutingException | MessageIOException | UnexpectedContentException e) {
-			logger.error("Bill routing error, caused by: ", e);
-		}
+	public void pendingCredit(BillValidatorHandler handler, BillEvent event, Bill bill) throws CcTalkException {
+		logger.info("Bill in escrow: {}. Accepting.", bill);
+		handler.getDevice().requestProductCode();
+		handler.getDevice().routeBill(BillValidator.ROUTE_CODE_SEND_BILL_CASHBOX_STACKER);
 	}
 	
 	/**
 	 * Called when a Credit event is read.
 	 * @param e event read
 	 */
-	public void credit(BillValidatorHandler handler, BillEvent e){
-		logger.info("Bill stacked {}", e);
+	public void credit(BillValidatorHandler handler, BillEvent e, Bill bill) throws CcTalkException {
+		logger.info("Bill stacked: {}", bill);
 	}
 	
 	/**
 	 * Called when a Reject event is read.
 	 * @param e event read
 	 */
-	public void reject(BillValidatorHandler handler, BillEvent e) {
+	public void reject(BillValidatorHandler handler, BillEvent e) throws CcTalkException {
 	}
 	
 	/**
 	 * Called when a Fraud Attempt event is read.
 	 * @param e event read
 	 */
-	public void fraudAttempt(BillValidatorHandler handler, BillEvent e) {
+	public void fraudAttempt(BillValidatorHandler handler, BillEvent e) throws CcTalkException {
 	}
 	
 	/**
 	 * Called when a Status event is read.
 	 * @param e event read
 	 */
-	public void status(BillValidatorHandler handler, BillEvent e) {
+	public void status(BillValidatorHandler handler, BillEvent e) throws CcTalkException {
 	}
 	
 	/**
 	 * Called when a Fatal Error event is read.
 	 * @param e event read
 	 */
-	public void fatalError(BillValidatorHandler handler, BillEvent e) {
+	public void fatalError(BillValidatorHandler handler, BillEvent e) throws CcTalkException {
 	}
 	
 	@Override
 	public void lostEvent(int lostEventCount, BillEventBuffer previousBuffer, BillEventBuffer newBuffer) {
+		
+	}
+	
+	/**
+	 * Called when an unhandled error is detected. 
+	 * //TODO handle events such as routing failure (stcker full) and other things... 
+	 * @param handler
+	 * @param e
+	 */
+	public void unhandledCcTalkException(BillValidatorHandler handler, BillEvent event, CcTalkException error){
 		
 	}
 }
