@@ -9,6 +9,22 @@ import com.github.pierrebeucher.cctalk4j.core.Message;
  */
 public class BillIdResponseWrapper extends AsciiDataResponseWrapper {
 
+	/**
+	 * Unprogrammed bill representation of 7 dots
+	 */
+	public static final String UNPROGRAMMED_BILL_IDENTIFICATION = ".......";
+	
+	/**
+	 * Check whether a <code>Bill</code> is programmed or not.
+	 * An unprogrammed bill is characterized by an identification
+	 * string of 7 dots ("......."). 
+	 * @param b bill to check
+	 * @return true if given bll is programmed, false otherwise
+	 */
+	public static boolean isProgrammed(BillIdResponseWrapper wp){
+		return !UNPROGRAMMED_BILL_IDENTIFICATION.equals(wp.getCountryCode() + wp.getValueCode() + wp.getIssueCode());
+	}
+	
 	private String countryCode;
 	private String valueCode;
 	private String issueCode;
@@ -59,6 +75,39 @@ public class BillIdResponseWrapper extends AsciiDataResponseWrapper {
 	 */
 	public String getIssueCode() {
 		return issueCode;
+	}
+
+	@Override
+	public String toString() {
+		return "BillIdResponseWrapper [countryCode=" + countryCode + ", valueCode=" + valueCode + ", issueCode="
+				+ issueCode + "]";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		BillIdResponseWrapper other = (BillIdResponseWrapper) obj;
+		if (countryCode == null) {
+			if (other.countryCode != null)
+				return false;
+		} else if (!countryCode.equals(other.countryCode))
+			return false;
+		if (issueCode == null) {
+			if (other.issueCode != null)
+				return false;
+		} else if (!issueCode.equals(other.issueCode))
+			return false;
+		if (valueCode == null) {
+			if (other.valueCode != null)
+				return false;
+		} else if (!valueCode.equals(other.valueCode))
+			return false;
+		return true;
 	}
 
 }

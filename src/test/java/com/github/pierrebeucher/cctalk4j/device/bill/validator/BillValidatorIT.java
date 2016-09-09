@@ -9,12 +9,15 @@ import org.testng.Assert;
 import org.testng.Assert.ThrowingRunnable;
 import org.testng.annotations.AfterClass;
 
+import com.github.pierrebeucher.cctalk4j.core.Header;
+import com.github.pierrebeucher.cctalk4j.core.Message;
+import com.github.pierrebeucher.cctalk4j.core.MessageFactory;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
-import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillOperatingModeResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
@@ -37,14 +40,14 @@ public class BillValidatorIT {
 	private BillValidator billValidator;
 	
 	/*
-	 * country code used by validator
-	 */
-	private String countryCode = "XO";
-	
-	/*
 	 * bill type used by validator
 	 */
-	private Bill billType1 = new Bill((byte) 1, countryCode, "0010", "A");
+	private String billType1Ascii = "XO0010A";
+	
+	/*
+	 * bill type used to check modify bill functionnality
+	 */
+	private String billUpdateAscii = "XO0001A";
 	
 	/*
 	 * unprogrammed bill type for validator
@@ -126,9 +129,10 @@ public class BillValidatorIT {
 	
 	@Test
 	public void requestBillId_1() throws MessageIOException, UnexpectedContentException{
-		Bill expected = billType1;
-		Bill bill = billValidator.requestBillId((byte) 1);
-		Assert.assertEquals(bill, expected);
+		Message expectedMessage = MessageFactory.messageCRCChecksum((byte)1, Header.NONE, billType1Ascii.getBytes());
+		BillIdResponseWrapper expected = BillIdResponseWrapper.wrap(expectedMessage);
+		BillIdResponseWrapper actual = billValidator.requestBillId((byte) 1);
+		Assert.assertEquals(actual, expected);
 	}
 	
 	/**
@@ -139,27 +143,26 @@ public class BillValidatorIT {
 	 */
 	@Test
 	public void modifyBillId() throws MessageIOException, UnexpectedContentException{
-		Bill billBefore = billValidator.requestBillId(unprogrammedBillType);
-		if(Bill.isProgrammed(billBefore)){
+		BillIdResponseWrapper billBefore = billValidator.requestBillId(unprogrammedBillType);
+		if(BillIdResponseWrapper.isProgrammed(billBefore)){
 			throw new RuntimeException("Cannot test modifyBillId() on programmed bill " +
 					billBefore + ", use a non programmed bill for the test.");
 		}
 		
 		byte modifiedBillType = unprogrammedBillType;
-		Bill newBill = new Bill(modifiedBillType, "XO", "0001", "D");
-		billValidator.modifyBillId(newBill);
-		Bill billAfter = billValidator.requestBillId(modifiedBillType);
+		billValidator.modifyBillId(modifiedBillType, billUpdateAscii);
+		BillIdResponseWrapper billAfter = billValidator.requestBillId(modifiedBillType);
 		
-		//replace unprogrammed bill before assert
+		//replace back unprogrammed bill before assert
 		try{
-			billValidator.modifyBillId(new Bill(unprogrammedBillType, "..", "....", "."));
+			billValidator.modifyBillId(modifiedBillType, billBefore.getAsciiData());
 		} catch (Exception e){
 			throw new RuntimeException("Cannot replace an unprogrammed bill for type " +
 					unprogrammedBillType + ", caused by:" + e + " - IMPORTANT: " +
 					" REDEFINE AN UNPROGRAMMED BILL FOR SAID TYPE.", e);
 		}
 		
-		Assert.assertEquals(newBill, billAfter);
+		Assert.assertEquals(billUpdateAscii, billAfter.getAsciiData());
 	}
 	
 	@Test

@@ -1,24 +1,15 @@
 package com.github.pierrebeucher.cctalk4j.device.bill;
 
+import java.math.BigDecimal;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class BillTest {
 
-	private Bill bill = new Bill((byte) 1, "XO", "0010", "A");
-	private Bill john = new Bill((byte) 1, "XO", "0010", "A");
-	private Bill claire = new Bill((byte) 5, "XO", "0020", "D");
-	private Bill unprogrammed = new Bill((byte)1, "..", "....", ".");
-	
-	@Test
-	public void isProgrammed_false(){
-		Assert.assertFalse(Bill.isProgrammed(unprogrammed));
-	}
-	
-	@Test
-	public void isProgrammed_true(){
-		Assert.assertTrue(Bill.isProgrammed(bill));
-	}
+	private Bill bill = new Bill((byte) 1, "XO", "0010", "A", BigDecimal.valueOf(1000));
+	private Bill john = new Bill((byte) 1, "XO", "0010", "A", BigDecimal.valueOf(1000));
+	private Bill claire = new Bill((byte) 5, "XO", "0020", "D", BigDecimal.valueOf(2000));
 	
 	@Test
 	public void toByteArray(){
@@ -50,6 +41,11 @@ public class BillTest {
 	@Test
 	public void valueCode() {
 		Assert.assertEquals(bill.valueCode(), "0010");
+	}
+	
+	@Test
+	public void getCurrencyValue(){
+		Assert.assertEquals(bill.getCurrencyValue(), BigDecimal.valueOf(1000));
 	}
 	
 	@Test

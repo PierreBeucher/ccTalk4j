@@ -1,5 +1,6 @@
 package com.github.pierrebeucher.cctalk4j.device.bill;
 
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -10,27 +11,12 @@ import java.nio.charset.StandardCharsets;
  *
  */
 public class Bill {
-
-	/**
-	 * Unprogrammed bill representation of 7 dots
-	 */
-	public static final String UNPROGRAMMED_BILL_IDENTIFICATION = ".......";
-	
-	/**
-	 * Check whether a <code>Bill</code> is programmed or not.
-	 * An unprogrammed bill is characterized by an identification
-	 * string of 7 dots ("......."). 
-	 * @param b bill to check
-	 * @return true if given bll is programmed, false otherwise
-	 */
-	public static boolean isProgrammed(Bill b){
-		return !UNPROGRAMMED_BILL_IDENTIFICATION.equals(b.rawIdentification());
-	}
 	
 	private byte billType;
 	private String countryCode;
 	private String valueCode;
 	private String issueCode;
+	private BigDecimal currencyValue;
 	
 	/**
 	 * @param billType
@@ -38,12 +24,13 @@ public class Bill {
 	 * @param valueCode
 	 * @param issueCode
 	 */
-	public Bill(byte billType, String countryCode, String valueCode, String issueCode) {
+	public Bill(byte billType, String countryCode, String valueCode, String issueCode, BigDecimal currencyValue) {
 		super();
 		this.billType = billType;
 		this.countryCode = countryCode;
 		this.valueCode = valueCode;
 		this.issueCode = issueCode;
+		this.currencyValue = currencyValue;
 	}
 	
 	/**
@@ -103,6 +90,14 @@ public class Bill {
 	 */
 	public String rawIdentification(){
 		return countryCode + valueCode + issueCode;
+	}
+
+	/**
+	 * 
+	 * @return the real currency value of this <code>Bill</code>
+	 */
+	public BigDecimal getCurrencyValue() {
+		return currencyValue;
 	}
 
 	/**

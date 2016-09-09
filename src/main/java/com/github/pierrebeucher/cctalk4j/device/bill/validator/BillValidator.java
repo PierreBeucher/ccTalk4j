@@ -11,7 +11,6 @@ import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.AbstractDevice;
 import com.github.pierrebeucher.cctalk4j.device.Device;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
-import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
@@ -104,12 +103,13 @@ public class BillValidator extends AbstractDevice implements Device {
 	}
 	/**
 	 * Modify a bill ID using Header 158 and bill type identified in the given <code>Bill</code>
-	 * @param bill bill to modify
+	 * @param identificationCode new identification code for the bill id
 	 * @throws MessageIOException
 	 * @throws UnexpectedContentException
 	 */
-	public void modifyBillId(Bill bill) throws MessageIOException, UnexpectedContentException{ 
-		Message response = requestResponse(Header.MODIFY_BILL_ID, bill.toByteArray());
+	public void modifyBillId(byte billType, String identificationCode) throws MessageIOException, UnexpectedContentException{
+		byte[] bytes = Utils.concat(new byte[]{billType}, identificationCode.getBytes(StandardCharsets.US_ASCII));
+		Message response = requestResponse(Header.MODIFY_BILL_ID, bytes);
 		AckWrapper.wrap(response);
 	}
 	
@@ -120,10 +120,9 @@ public class BillValidator extends AbstractDevice implements Device {
 	 * @throws MessageIOException
 	 * @throws UnexpectedContentException
 	 */
-	public Bill requestBillId(byte billType) throws MessageIOException, UnexpectedContentException{
+	public BillIdResponseWrapper requestBillId(byte billType) throws MessageIOException, UnexpectedContentException{
 		Message response = requestResponse(Header.REQUEST_BILL_ID, new byte[]{billType});
-		BillIdResponseWrapper wrapper = BillIdResponseWrapper.wrap(response);
-		return new Bill(billType, wrapper.getCountryCode(), wrapper.getValueCode(), wrapper.getIssueCode());	
+		return BillIdResponseWrapper.wrap(response);
 	}
 	
 	/**

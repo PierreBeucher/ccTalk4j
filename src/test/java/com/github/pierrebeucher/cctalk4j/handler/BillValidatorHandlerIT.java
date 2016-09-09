@@ -23,10 +23,6 @@ public class BillValidatorHandlerIT {
 	private BillValidator device;
 	private BillValidatorHandler handler;
 	
-	private int scalingFactor = 1000;
-	private int decimalPlace = 0;
-	private String countryCode = "XO";
-	
 	@BeforeClass
 	public void beforeClass(){
 		device = DeviceFactory.billValidatorSerialCRC(comPort, address);
@@ -48,21 +44,6 @@ public class BillValidatorHandlerIT {
 	@Test(priority=2)
 	public void doPreAcceptance() throws DeviceHandlingException{
 		handler.doPreAcceptance();
-	}
-	
-	@Test(priority=3)
-	public void getDeviceScalingFactor(){
-		Assert.assertEquals(handler.getDeviceScalingFactor(), scalingFactor);
-	}
-	
-	@Test(priority=3)
-	public void getDeviceDecimalPlace(){
-		Assert.assertEquals(handler.getDeviceDecimalPlace(), decimalPlace);
-	}
-	
-	@Test(priority=3)
-	public void getDeviceCountryCode(){
-		Assert.assertEquals(handler.getDeviceCountryCode(), countryCode);
 	}
 	
 	/**
