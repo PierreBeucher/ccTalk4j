@@ -47,6 +47,12 @@ public abstract class AbstractDevice implements Device {
 	
 	protected Logger logger = LoggerFactory.getLogger(getClass());
 	
+	/*
+	 * Message port used by this Device.
+	 * Should not be used by external components, otherwise
+	 * there is a synchronization risk by not using
+	 * synchronized functions
+	 */
 	private MessagePort port;
 	
 	private byte deviceAddress;
@@ -133,24 +139,13 @@ public abstract class AbstractDevice implements Device {
 
 	@Override
 	public boolean simplePoll() throws MessagePortException, MessageParsingException, UnexpectedContentException {
-		writeMessage(buildMessage(Header.SIMPLE_POLL));
 		try {
-			Message response = readMessage();
-			ensureAckMessage(response);
-			return true;			
+			Message ackResponse = requestResponse(Header.SIMPLE_POLL);
+			return AckWrapper.isAck(ackResponse);			
 		} catch (MessagePortTimeoutException e) {
 			//read timeout expected
 			return false;
 		}
-	}
-	/**
-	 * Ensure the given message is an ACK message.
-	 * Throw an <code>UnexpectedContentException</code> if it is not.
-	 * @param m
-	 * @throws UnexpectedContentException
-	 */
-	private void ensureAckMessage(Message m) throws UnexpectedContentException{
-		AckWrapper.wrap(m);
 	}
 	
 	/**
@@ -160,7 +155,7 @@ public abstract class AbstractDevice implements Device {
 	 * @throws MessageParsingException 
 	 * @throws MessagePortException 
 	 */
-	protected Message requestResponse(Header requestHeader) throws MessagePortException, MessageParsingException{
+	protected synchronized Message requestResponse(Header requestHeader) throws MessagePortException, MessageParsingException{
 		writeMessage(buildMessage(requestHeader));
 		return readMessage();
 	}
@@ -173,7 +168,7 @@ public abstract class AbstractDevice implements Device {
 	 * @throws MessagePortException
 	 * @throws MessageParsingException
 	 */
-	protected Message requestResponse(Header requestHeader, byte[] data) throws MessagePortException, MessageParsingException{
+	protected synchronized Message requestResponse(Header requestHeader, byte[] data) throws MessagePortException, MessageParsingException{
 		writeMessage(buildMessage(requestHeader, data));
 		return readMessage();
 	}
@@ -186,7 +181,7 @@ public abstract class AbstractDevice implements Device {
 	 * @throws MessagePortException
 	 * @throws MessageParsingException
 	 */
-	protected Message requestResponse(Header requestHeader, byte data) throws MessagePortException, MessageParsingException{
+	protected synchronized Message requestResponse(Header requestHeader, byte data) throws MessagePortException, MessageParsingException{
 		writeMessage(buildMessage(requestHeader, new byte[]{data}));
 		return readMessage();
 	}
@@ -200,7 +195,7 @@ public abstract class AbstractDevice implements Device {
 	 * @throws MessagePortException 
 	 * @throws UnexpectedContentException 
 	 */
-	protected String requestAsciiResponse(Header requestHeader) throws MessagePortException, MessageParsingException, UnexpectedContentException{
+	protected synchronized String requestAsciiResponse(Header requestHeader) throws MessagePortException, MessageParsingException, UnexpectedContentException{
 		Message m = requestResponse(requestHeader);
 		return AsciiDataResponseWrapper.wrap(m).getAsciiData();
 	}

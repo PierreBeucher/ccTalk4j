@@ -1,8 +1,12 @@
 package com.github.pierrebeucher.cctalk4j.handler;
 
+import org.testng.annotations.Test;
+
+import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
+import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 public class BillValidatorHandlerWithSimpleEventListenerIT {
 	
@@ -27,5 +31,61 @@ public class BillValidatorHandlerWithSimpleEventListenerIT {
 		Thread.sleep(30000);
 		handler.stopInputAcceptance();
 		handler.terminate();
+	}
+	
+	/**
+	 * Manual test to check an hypothetical payment and monitoring threads are running
+	 * concurrently, one to handle payment from user, the other to check device state.
+	 * Tets the synchronization of the Device class.
+	 * @throws DeviceHandlingException
+	 * @throws InterruptedException
+	 * @throws MessagePortException
+	 */
+	//@Test
+	public void syncTest() throws DeviceHandlingException, InterruptedException, MessagePortException{
+		device = DeviceFactory.billValidatorSerialCRC(comPort, address);
+		handler = new BillValidatorHandler(device);
+		handler.addListener(new SimpleBillEventListener());
+		handler.initialise();
+		
+		//time during which Threads will run, in ms
+		final long testTime = 30000;
+		
+		Runnable paymentRunnable = new Runnable(){
+			@Override
+			public void run() {
+				try{
+					handler.startInputAcceptance();
+					Thread.sleep(testTime);
+					handler.stopInputAcceptance();
+					handler.terminate();
+				} catch (Exception e){
+					
+				}
+			}
+		};
+		
+		Runnable monitoringRunnable = new Runnable(){
+			@Override
+			public void run() {
+				try {
+					for(int i=0; i<=(testTime/1000); i++){
+						handler.getDevice().performSelfCheck();
+						Thread.sleep(1000);
+					}
+				} catch (MessageIOException | UnexpectedContentException | InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+		
+		Thread monitoringThread = new Thread(monitoringRunnable);
+		Thread paymentThread = new Thread(paymentRunnable);
+		
+		monitoringThread.start();
+		paymentThread.start();
+		
+		monitoringThread.join((long) (testTime * 1.3));
+		paymentThread.join(5000);
 	}
 }
