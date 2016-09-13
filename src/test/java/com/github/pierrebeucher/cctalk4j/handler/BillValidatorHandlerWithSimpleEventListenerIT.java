@@ -1,19 +1,33 @@
 package com.github.pierrebeucher.cctalk4j.handler;
 
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
+import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 public class BillValidatorHandlerWithSimpleEventListenerIT {
 	
-	private byte address = 40;
-	private String comPort = "COM6";
+	private byte address;
+	private String comPort;
+	
 	private BillValidator device;
 	private BillValidatorHandler handler;
+	
+	@Parameters({"billValidator.comPort", "billValidator.address"})
+	@BeforeClass
+	public void beforeClass(String comPort, int address){
+		this.address = Utils.unsignedIntToByte(address);
+		this.comPort = comPort;
+		
+		device = DeviceFactory.billValidatorSerialCRC(this.comPort, this.address);
+		handler = new BillValidatorHandler(device);
+	}
 	
 	/**
 	 * Used for manual testing to ensure bill events are properly handled.

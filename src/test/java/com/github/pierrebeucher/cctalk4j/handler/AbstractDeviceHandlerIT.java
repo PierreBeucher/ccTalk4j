@@ -3,9 +3,11 @@ package com.github.pierrebeucher.cctalk4j.handler;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
+import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.Device;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.handler.AbstractDeviceHandler;
@@ -13,14 +15,18 @@ import com.github.pierrebeucher.cctalk4j.handler.DeviceHandlingException;
 
 public class AbstractDeviceHandlerIT {
 
-	private byte address = 40;
-	private String comPort = "COM6";
+	private byte address;
+	private String comPort;
+	
 	private Device device;
 	private MyDeviceHandler handler;
 
+	@Parameters({"billValidator.comPort", "billValidator.address"})
 	@BeforeClass
-	public void beforeClass(){
-		device = DeviceFactory.billValidatorSerialCRC(comPort, address);
+	public void beforeClass(String comPort, int address){
+		this.address = Utils.unsignedIntToByte(address);
+		this.comPort = comPort;
+		device = DeviceFactory.billValidatorSerialCRC(this.comPort, this.address);
 		handler = new MyDeviceHandler(device);
 	}
 

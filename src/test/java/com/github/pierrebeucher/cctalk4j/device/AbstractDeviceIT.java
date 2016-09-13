@@ -1,12 +1,15 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.SerialMessagePort;
+import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.CRCChecksumMessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
@@ -14,12 +17,44 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContent
 
 public class AbstractDeviceIT {
 	
-	private String portName = "COM6";
-	private byte address = 40;
-	private String deviceManufacturerId = "AST";
-	private String buildCode = "0010010I";
-	private String equipementCatId = "Bill Validator";
-	private String productCode = "GBA_ST2";
+	private String portName;
+	private byte address;
+	private String deviceManufacturerId;
+	private String buildCode;
+	private String equipmentCatId;
+	private String productCode;
+	
+	@Parameters({"billValidator.comPort", "billValidator.address",
+		"billValidator.manufacturerId", "billValidator.buildCode",
+		"billValidator.equipmentCatId", "billValidator.productCode"})
+	@BeforeClass
+	public void beforeClass(String portName, int address,
+			String deviceManufacturerId, String buildCode,
+			String equipmentCatId, String productCode){
+		this.portName = portName;
+		this.address = Utils.unsignedIntToByte(address);
+		this.deviceManufacturerId = deviceManufacturerId;
+		this.buildCode = buildCode;
+		this.equipmentCatId = workaround_equipementCatId(equipmentCatId);
+		this.productCode = productCode;
+	}
+	
+	/**
+	 * Ugly workaround for <billValidator.equipmentCatId>Bill Validator</billValidator.equipmentCatId>
+	 * Maven alone works fine but running it in Eclipse the space is badly handled
+	 * and gives error like "Could not find or load main class Validator".
+	 * So we had to put quotes... <billValidator.equipmentCatId>"Bill Validator"</billValidator.equipmentCatId>
+	 * 
+	 * @param equipmentCatId
+	 */
+	private String workaround_equipementCatId(String equipementCatId){
+		if(equipementCatId != null && equipementCatId.startsWith("\"")
+				&& equipementCatId.endsWith("\"") && equipementCatId.length() >= 3){
+			return equipementCatId.substring(1, equipementCatId.length()-1);
+		} else {
+			return equipementCatId;
+		}
+	}
 	
 	private Device buildTestDevice(){
 		MessagePort port = new SerialMessagePort(portName, MessagePort.MESSAGE_TYPE_CRC16_CHECKSUM);
@@ -87,7 +122,7 @@ public class AbstractDeviceIT {
 		try{
 			device.connect();
 			String bcode = device.requestEquipmentCategoryId();
-			Assert.assertEquals(bcode, equipementCatId);
+			Assert.assertEquals(bcode, equipmentCatId);
 		} finally {
 			device.disconnect();
 		}

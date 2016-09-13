@@ -1,6 +1,8 @@
 package com.github.pierrebeucher.cctalk4j.core;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.CRCChecksumMessage;
@@ -16,12 +18,19 @@ public class SerialMessagePortIT {
 	/*
 	 * Com port used for test
 	 */
-	private String comPort = "COM6";
+	private String comPort;
 	
 	/*
 	 * Address of the tested device
 	 */
-	private byte testDeviceDestination = Utils.unsignedIntToByte(40);
+	private byte testDeviceDestination;
+	
+	@Parameters({"billValidator.comPort", "billValidator.address"})
+	@BeforeClass
+	public void beforeClass(String comPort, int billValidatorAddress){
+		this.comPort = comPort;
+		this.testDeviceDestination = Utils.unsignedIntToByte(billValidatorAddress);
+	}
 	
 	@Test
 	public void isClosed_nominal() throws MessagePortException {

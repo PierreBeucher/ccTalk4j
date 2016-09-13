@@ -2,6 +2,7 @@ package com.github.pierrebeucher.cctalk4j.device.bill.validator;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 
 import java.util.BitSet;
 
@@ -27,12 +28,12 @@ public class BillValidatorIT {
 	/*
 	 * Port used to communicate with the bill validator
 	 */
-	private String portCom = "COM6";
+	private String portCom;
 	
 	/*
 	 * Address of the validator
 	 */
-	private byte address = 40;
+	private byte address;
 	
 	/*
 	 * instance of validator used for test (created by beforeClass)
@@ -42,42 +43,57 @@ public class BillValidatorIT {
 	/*
 	 * bill type used by validator
 	 */
-	private String billType1Ascii = "XO0010A";
+	private String billType1Ascii;
 	
 	/*
 	 * bill type used to check modify bill functionnality
 	 */
-	private String billUpdateAscii = "XO0001A";
+	private String billUpdateAscii;
 	
 	/*
 	 * unprogrammed bill type for validator
 	 */
-	private byte unprogrammedBillType = 16;
+	private byte unprogrammedBillType;
 	
 	/*
 	 * scaling factor for the country code used by validator
 	 */
-	private short scalingFactor = 1000;
+	private short scalingFactor;
 	
 	/*
 	 * decimal place for the country code used by validator
 	 */
-	private byte decimalPlace = 0;
+	private byte decimalPlace;
 	
 	/*
 	 * Escrow operating mode
 	 */
-	private boolean billOperatingModeEscrow = true;
+	private boolean billOperatingModeEscrow;
 	
 	/*
 	 * Stacker operating mode
 	 */
-	private boolean billOperatingModeStacker = true;
+	private boolean billOperatingModeStacker;
 	
+	@Parameters({"billValidator.comPort", "billValidator.address", "bill.type.1.rawId",
+		"bill.toUpdate.rawId", "bill.unprogrammed.type", "bill.scalingFactor",
+		"bill.decimalPlace", "billValidator.billOperatingModeEscrow", "billValidator.billOperatingModeStacker"})
 	@BeforeClass
-	public void beforeClass() throws MessagePortException{
-		billValidator = DeviceFactory.billValidatorSerialCRC(portCom, address);
-		billValidator.connect();
+	public void beforeClass(String portCom, byte address, String billType1Ascii,
+			String billUpdateAscii, byte unprogrammedBillType, short scalingFactor,
+			byte decimalPlace, boolean billOperatingModeEscrow, boolean billOperatingModeStacker) throws MessagePortException {
+		this.portCom = portCom;
+		this.address = address;
+		this.billType1Ascii = billType1Ascii;
+		this.billUpdateAscii = billUpdateAscii;
+		this.unprogrammedBillType = unprogrammedBillType;
+		this.scalingFactor = scalingFactor;
+		this.decimalPlace = decimalPlace;
+		this.billOperatingModeEscrow = billOperatingModeEscrow;
+		this.billOperatingModeStacker = billOperatingModeStacker;
+		
+		this.billValidator = DeviceFactory.billValidatorSerialCRC(this.portCom, this.address);
+		this.billValidator.connect();
 	}
 	
 	@Test

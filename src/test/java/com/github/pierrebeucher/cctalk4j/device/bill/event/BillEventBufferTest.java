@@ -1,8 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.device.bill.event;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import junit.framework.Assert;
 
 public class BillEventBufferTest {
 

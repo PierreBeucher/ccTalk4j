@@ -1,5 +1,6 @@
 package com.github.pierrebeucher.cctalk4j.handler;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -7,8 +8,6 @@ import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.Device;
 import com.github.pierrebeucher.cctalk4j.device.DummyDevice;
 import com.github.pierrebeucher.cctalk4j.handler.CreditPollingRunnable;
-
-import junit.framework.Assert;
 
 public class CreditPollingRunnableTest {
 	
