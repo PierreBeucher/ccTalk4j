@@ -7,6 +7,9 @@ import java.util.Map;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
+import com.github.pierrebeucher.cctalk4j.device.bill.event.BadEventException;
+import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEvent;
+import com.github.pierrebeucher.cctalk4j.device.bill.event.EventUtils;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.CountryScalingFactorWrapper;
@@ -324,6 +327,20 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 	 */
 	public Map<Byte, Bill> getBillMap() {
 		return billMap;
+	}
+	
+	/**
+	 * <p>Get the Bill associated to the given event. Event type must be CREDIT or PENDING_CREDIT.</p>
+	 * <p>This <code>BillValidatorHandler</code> holds a Map matching each bill type
+	 * (i.e. the event <i>resultA</i> byte) to a Bill instance. If the bill type is matched
+	 * to a known bill, this instance is returned. Otherwise, null is returned. </p>
+	 * @param event event for which the 
+	 * @return a Bill instance if the bill type is matched to a Bill instance, null otherwise
+	 * @throws BadEventException 
+	 */
+	public Bill getBillForEvent(BillEvent event) throws BadEventException{
+		byte billType = EventUtils.getBillTypeForEvent(event);
+		return this.getBillMap().get(billType);
 	}
 
 	/**
