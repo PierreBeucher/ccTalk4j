@@ -1,9 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
-import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
-import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
  * Dummy device used for testing purpose only.
@@ -56,37 +54,37 @@ public class DummyDevice implements Device {
 	 * Always returns true.
 	 */
 	@Override
-	public boolean simplePoll() throws MessageIOException, UnexpectedContentException {
-		return true;
+	public void simplePoll() {
+		return;
 	}
 
 	@Override
-	public String requestManufacturerId() throws MessageIOException, UnexpectedContentException {
+	public String requestManufacturerId() {
 		return null;
 	}
 
 	@Override
-	public String requestEquipmentCategoryId() throws MessageIOException, UnexpectedContentException {
+	public String requestEquipmentCategoryId() {
 		return null;
 	}
 
 	@Override
-	public String requestProductCode() throws MessageIOException, UnexpectedContentException {
+	public String requestProductCode() {
 		return null;
 	}
 
 	@Override
-	public String requestBuildCode() throws MessageIOException, UnexpectedContentException {
+	public String requestBuildCode() {
 		return null;
 	}
 
 	@Override
-	public Object requestEncryptionSupport() throws MessageIOException, UnexpectedContentException {
+	public Object requestEncryptionSupport() {
 		return null;
 	}
 
 	@Override
-	public SelfCheckResponseWrapper performSelfCheck() throws MessageIOException, UnexpectedContentException {
+	public SelfCheckResponseWrapper performSelfCheck() {
 		return null;
 	}
 

@@ -7,8 +7,10 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
+import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
+import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEvent;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.Event;
@@ -26,12 +28,13 @@ public class BillEventHandlerTest {
 	
 	/**
 	 * A test with a real device. To be mode in IT when possible.
+	 * @throws MessagePortException 
 	 * @throws UnexpectedContentException 
 	 * @throws MessageIOException 
 	 */
 	//@Test
 	//desactivad for the moment, consuming too much time 
-	public void billEventHandlerEventCount() throws MessageIOException, UnexpectedContentException{
+	public void billEventHandlerEventCount() throws DeviceRequestException, MessagePortException{
 		BillEventHandler handler = new BillEventHandler(null);
 		BillValidator validator = DeviceFactory.billValidatorSerialCRC("COM6", (byte)40);
 		try{

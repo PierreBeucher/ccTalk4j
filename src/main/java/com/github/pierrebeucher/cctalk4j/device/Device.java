@@ -58,21 +58,16 @@ public interface Device {
 	
 	/**
 	 * <p>Perform a simple poll. Based on header 254.</p>
-	 * @return true if an ACK is received, false if no response is received.
-	 * @throws MessageIOException if write timeout occur
-	 * @throws UnexpectedMessageException if a non-ACK response is received
-	 * @throws UnexpectedContentException 
+	 * @throws DeviceRequestException if ack fails (timeout or received a non-ack message)
 	 */
-	boolean simplePoll() throws MessageIOException, UnexpectedContentException;
+	void simplePoll() throws DeviceRequestException;
 	
 	/**
 	 * Request the device manufacturer's unique ID.
 	 * Based on header 246.
 	 * @return device manufacturer's unique ID as String
-	 * @throws MessageIOException,
-	 * @throws UnexpectedContentException 
 	 */
-	String requestManufacturerId() throws MessageIOException, UnexpectedContentException;
+	String requestManufacturerId() throws DeviceRequestException;
 	
 	/**
 	 * Request the device equipment category ID.
@@ -81,7 +76,7 @@ public interface Device {
 	 * @throws UnexpectedContentException 
 	 * @throws MessageIOException
 	 */
-	String requestEquipmentCategoryId() throws MessageIOException, UnexpectedContentException;
+	String requestEquipmentCategoryId() throws DeviceRequestException;
 	
 	/**
 	 * Request the device product code.
@@ -90,7 +85,7 @@ public interface Device {
 	 * @throws UnexpectedContentException 
 	 * @throws MessageIOException
 	 */
-	String requestProductCode() throws MessageIOException, UnexpectedContentException;
+	String requestProductCode() throws DeviceRequestException;
 	
 	/**
 	 * Request the device build code.
@@ -99,7 +94,7 @@ public interface Device {
 	 * @throws UnexpectedContentException 
 	 * @throws MessageIOException
 	 */
-	String requestBuildCode() throws MessageIOException, UnexpectedContentException;
+	String requestBuildCode() throws DeviceRequestException;
 	
 	/**
 	 * Request the device encryption support. Based on header 111.
@@ -107,7 +102,7 @@ public interface Device {
 	 * @throws UnexpectedContentException 
 	 * @throws MessageIOException
 	 */
-	Object requestEncryptionSupport() throws MessageIOException, UnexpectedContentException;
+	Object requestEncryptionSupport() throws DeviceRequestException;
 	
 	/**
 	 * Perform a self check. Based on header 232.
@@ -115,6 +110,6 @@ public interface Device {
 	 * @throws MessageParsingException 
 	 * @throws MessagePortException 
 	 */
-	SelfCheckResponseWrapper performSelfCheck() throws MessageIOException, UnexpectedContentException;
+	SelfCheckResponseWrapper performSelfCheck() throws DeviceRequestException;
 	
 }

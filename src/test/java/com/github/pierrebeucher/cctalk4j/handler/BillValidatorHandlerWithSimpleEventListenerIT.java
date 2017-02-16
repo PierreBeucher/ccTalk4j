@@ -2,14 +2,11 @@ package com.github.pierrebeucher.cctalk4j.handler;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
-
-import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
+import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
-import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 public class BillValidatorHandlerWithSimpleEventListenerIT {
 	
@@ -87,7 +84,7 @@ public class BillValidatorHandlerWithSimpleEventListenerIT {
 						handler.getDevice().performSelfCheck();
 						Thread.sleep(1000);
 					}
-				} catch (MessageIOException | UnexpectedContentException | InterruptedException e) {
+				} catch ( InterruptedException | DeviceRequestException e) {
 					throw new RuntimeException(e);
 				}
 			}

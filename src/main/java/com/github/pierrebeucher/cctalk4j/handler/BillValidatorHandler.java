@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
+import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BadEventException;
@@ -174,7 +175,7 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			modifyBillOperatingMode(true);
 			modifyInhibitStatus(false); 
 			modifyMasterInhibit(false);
-		} catch (MessageIOException | UnexpectedContentException e) {
+		} catch (DeviceRequestException e) {
 			throw new DeviceHandlingException("Pre-acceptance error.", e);
 		}
 		
@@ -186,7 +187,7 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			modifyBillOperatingMode(false);
 			modifyInhibitStatus(true); 
 			modifyMasterInhibit(true);
-		} catch (MessageIOException | UnexpectedContentException e) {
+		} catch (DeviceRequestException  e) {
 			throw new DeviceHandlingException("Post-acceptance error.", e);
 		}
 	}
@@ -224,7 +225,7 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 					continue;
 				}
 			}
-		} catch(MessageIOException | UnexpectedContentException e){
+		} catch(DeviceRequestException e){
 			throw new DeviceHandlingException("Error requesting available bills and countries", e);
 		}
 	}
@@ -247,7 +248,7 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 	 * @throws UnexpectedContentException 
 	 * @throws MessageIOException 
 	 */
-	private CountryScalingFactorWrapper retrieveCountryScalingFactorFor(String countryCode) throws MessageIOException, UnexpectedContentException, IllegalArgumentException{
+	private CountryScalingFactorWrapper retrieveCountryScalingFactorFor(String countryCode) throws DeviceRequestException{
 		if(countryScalingFactorMap.containsKey(countryCode)){
 			return countryScalingFactorMap.get(countryCode);
 		} else {
@@ -262,16 +263,16 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 		//TODO
 	}
 	
-	private void modifyBillOperatingMode(boolean enabled) throws MessageIOException, UnexpectedContentException{
+	private void modifyBillOperatingMode(boolean enabled) throws DeviceRequestException {
 		device.modifyBillOperatingMode(enabled, enabled);
 	}
 	
-	private void modifyInhibitStatus(boolean inhibitEnabled) throws MessageIOException, UnexpectedContentException{
+	private void modifyInhibitStatus(boolean inhibitEnabled) throws  DeviceRequestException{
 		InhibitMask mask = inhibitEnabled ? InhibitMask.FULLY_INHIBITING_MASK : InhibitMask.FULLY_ENABLING_MASK;
 		device.modifyInhibitStatus(mask);
 	}
 	
-	private void modifyMasterInhibit(boolean inhibit) throws MessageIOException, UnexpectedContentException{
+	private void modifyMasterInhibit(boolean inhibit) throws DeviceRequestException{
 		device.modifyMasterInhibitStatus(!inhibit);
 	}
 
@@ -363,7 +364,7 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 		protected void doCreditPoll() {
 			try {
 				eventHandler.feed(device.readBufferedNoteEvents());
-			} catch (MessageIOException | UnexpectedContentException e) {
+			} catch (DeviceRequestException e) {
 				logger.error("Error during credit poll: " + e, e);
 			}
 		}

@@ -1,15 +1,17 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.pierrebeucher.cctalk4j.core.Header;
 import com.github.pierrebeucher.cctalk4j.core.Message;
-import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
-import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
-import com.github.pierrebeucher.cctalk4j.core.MessagePortTimeoutException;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuildException;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
@@ -63,6 +65,8 @@ public abstract class AbstractDevice implements Device {
 	
 	private int writeTimeout;
 	
+	private FutureMessageReader messageReader;
+	
 	/**
 	 * Create a new <code>BillValidator</code> using the given port.
 	 * @param port message port to use
@@ -78,6 +82,7 @@ public abstract class AbstractDevice implements Device {
 		this.deviceAddress = deviceAddress;
 		this.readTimeout = DEFAULT_READ_TIMEOUT;
 		this.writeTimeout = DEFAULT_WRITE_TIMEOUT;
+		this.messageReader = new FutureMessageReader(port);
 	}
 	
 	@Override
@@ -120,31 +125,53 @@ public abstract class AbstractDevice implements Device {
 		return buildMessage(header, EMPTY_DATA_BYTE_ARRAY);
 	}
 	
-	/**
-	 * Read a single message using this device read timeout
-	 * @return read message
-	 * @throws MessagePortException
-	 * @throws MessageParsingException
-	 */
-	private Message readMessage() throws MessagePortException, MessageParsingException{
-		Message m = port.read(readTimeout);
-		logger.debug("{} read {}", this, m);
-		return m;
-	}
-	
-	private void writeMessage(Message m) throws MessagePortException{
-		logger.debug("{} writes {}", this, m);
-		port.write(m);
-	}
+//	/**
+//	 * Read a single message using this device read timeout
+//	 * @return read message
+//	 * @throws MessagePortException
+//	 * @throws MessageParsingException
+//	 */
+//	private Message readMessage() throws MessagePortException, MessageParsingException{
+//		Message m = port.read(readTimeout);
+//		logger.debug("{} read {}", this, m);
+//		return m;
+//	}
+//	
+//	private void writeMessage(Message m) throws MessagePortException{
+//		logger.debug("{} writes {}", this, m);
+//		port.write(m);
+//	}
 
 	@Override
-	public boolean simplePoll() throws MessagePortException, MessageParsingException, UnexpectedContentException {
+	public void simplePoll() throws DeviceRequestException {
+		Message ackResponse = requestResponse(Header.SIMPLE_POLL);
+		if(!AckWrapper.isAck(ackResponse)){
+			throw new DeviceRequestException("Obtained response is not ack: " + ackResponse);
+		}
+	}
+	
+	private Message requestResponse(Message m) throws DeviceRequestException{
+		//start reading before sending request
+		//this ensure that the response will not be lost
+		//if we first write the message but the response arrive
+		//before we being to read the port
+		Future<MessageReaderResponse> futureResponse = messageReader.readMessage(readTimeout);
+		
+		//normally we should not have to define a timeout as port read already does
+		//just in case...
 		try {
-			Message ackResponse = requestResponse(Header.SIMPLE_POLL);
-			return AckWrapper.isAck(ackResponse);			
-		} catch (MessagePortTimeoutException e) {
-			//read timeout expected
-			return false;
+			port.write(m);
+			MessageReaderResponse readerResponse = futureResponse.get(readTimeout, TimeUnit.MILLISECONDS);
+			Message responseMessage = readerResponse.getMessage();
+			if(responseMessage == null){
+				if(readerResponse.getException() != null){
+					throw new DeviceRequestException("Unable to get response for request:" + readerResponse.getException(), readerResponse.getException());
+				}
+				throw new DeviceRequestException("Unable to read message response, but no exception reported. There is probably a bug in the MessageReaderResponse, please report.");
+			}
+			return responseMessage;
+		} catch (MessagePortException | InterruptedException | ExecutionException | TimeoutException e) {
+			throw new DeviceRequestException("Error during device request/response:" + e, e);
 		}
 	}
 	
@@ -152,12 +179,10 @@ public abstract class AbstractDevice implements Device {
 	 * Send a request with no data expecting a single response.
 	 * @param requestHeader header to use 
 	 * @return response obtained
-	 * @throws MessageParsingException 
-	 * @throws MessagePortException 
+	 * @throws DeviceRequestException 
 	 */
-	protected synchronized Message requestResponse(Header requestHeader) throws MessagePortException, MessageParsingException{
-		writeMessage(buildMessage(requestHeader));
-		return readMessage();
+	protected synchronized Message requestResponse(Header requestHeader) throws DeviceRequestException {
+		return requestResponse(buildMessage(requestHeader));
 	}
 	
 	/**
@@ -165,12 +190,10 @@ public abstract class AbstractDevice implements Device {
 	 * @param requestHeader header to use
 	 * @param data data payload
 	 * @return response obtained
-	 * @throws MessagePortException
-	 * @throws MessageParsingException
+	 * @throws DeviceRequestException 
 	 */
-	protected synchronized Message requestResponse(Header requestHeader, byte[] data) throws MessagePortException, MessageParsingException{
-		writeMessage(buildMessage(requestHeader, data));
-		return readMessage();
+	protected synchronized Message requestResponse(Header requestHeader, byte[] data) throws DeviceRequestException{
+		return requestResponse(buildMessage(requestHeader, data));
 	}
 	
 	/**
@@ -178,45 +201,45 @@ public abstract class AbstractDevice implements Device {
 	 * @param requestHeader header to use
 	 * @param data single byte data payload
 	 * @return response obtained
-	 * @throws MessagePortException
-	 * @throws MessageParsingException
+	 * @throws DeviceRequestException 
 	 */
-	protected synchronized Message requestResponse(Header requestHeader, byte data) throws MessagePortException, MessageParsingException{
-		writeMessage(buildMessage(requestHeader, new byte[]{data}));
-		return readMessage();
+	protected synchronized Message requestResponse(Header requestHeader, byte data) throws DeviceRequestException{
+		return requestResponse(buildMessage(requestHeader, new byte[]{data}));
 	}
 	
 	/**
 	 * Send a request expecting a single ASCII response, calling {@link #requestResponse(Header)}
 	 * and wrapping the message with a <code>AsciiDataResponseWrapper</code>.
 	 * @param request request to send
-	 * @return response obtained as String
-	 * @throws MessageParsingException 
-	 * @throws MessagePortException 
-	 * @throws UnexpectedContentException 
+	 * @return response obtained as String 
+	 * @throws DeviceRequestException 
 	 */
-	protected synchronized String requestAsciiResponse(Header requestHeader) throws MessagePortException, MessageParsingException, UnexpectedContentException{
+	protected synchronized String requestAsciiResponse(Header requestHeader) throws DeviceRequestException{
 		Message m = requestResponse(requestHeader);
-		return AsciiDataResponseWrapper.wrap(m).getAsciiData();
+		try {
+			return AsciiDataResponseWrapper.wrap(m).getAsciiData();
+		} catch (UnexpectedContentException e) {
+			throw new DeviceRequestException(e);
+		}
 	}
 
 	@Override
-	public String requestManufacturerId() throws MessageIOException, UnexpectedContentException {
+	public String requestManufacturerId() throws DeviceRequestException {
 		return requestAsciiResponse(Header.REQUEST_MANUFACTURER_ID);
 	}
 
 	@Override
-	public String requestEquipmentCategoryId() throws UnexpectedContentException, MessageIOException {
+	public String requestEquipmentCategoryId() throws DeviceRequestException {
 		return requestAsciiResponse(Header.REQUEST_EQUIPMENT_CATEGORY_ID);
 	}
 
 	@Override
-	public String requestProductCode() throws UnexpectedContentException, MessageIOException {
+	public String requestProductCode() throws DeviceRequestException {
 		return requestAsciiResponse(Header.REQUEST_PRODUCT_CODE);
 	}
 
 	@Override
-	public String requestBuildCode() throws UnexpectedContentException, MessageIOException {
+	public String requestBuildCode() throws DeviceRequestException {
 		return requestAsciiResponse(Header.REQUEST_BUILD_CODE);
 	}
 
@@ -230,9 +253,13 @@ public abstract class AbstractDevice implements Device {
 	}
 
 	@Override
-	public SelfCheckAckResponseWrapper performSelfCheck() throws MessageIOException, UnexpectedContentException {
+	public SelfCheckAckResponseWrapper performSelfCheck() throws DeviceRequestException {
 		Message response = requestResponse(Header.PERFORM_SELF_CHECK);
-		return SelfCheckAckResponseWrapper.wrap(response);
+		try {
+			return SelfCheckAckResponseWrapper.wrap(response);
+		} catch (UnexpectedContentException e) {
+			throw new DeviceRequestException(e);
+		}
 	}
 
 	@Override

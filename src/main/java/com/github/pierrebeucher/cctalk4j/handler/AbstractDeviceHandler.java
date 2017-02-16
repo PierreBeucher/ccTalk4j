@@ -3,11 +3,11 @@ package com.github.pierrebeucher.cctalk4j.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.Device;
+import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
+import com.github.pierrebeucher.cctalk4j.device.DeviceRequestTimeoutException;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
-import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 /**
  * <p>Abstract implement of <code>DeviceHandler</code>. Provide basic
@@ -93,12 +93,11 @@ public abstract class AbstractDeviceHandler<E extends Device> implements DeviceH
 	/**
 	 * Called by {@link #initialise()} to perform initialization tasks.
 	 * @throws DeviceHandlingException
+	 * @throws DeviceRequestException 
 	 */
 	protected void doInitialisation() throws DeviceHandlingException{
-		try {
-			if(!device.simplePoll()){
-				throw new DeviceHandlingException("Cannot perform a simple poll after connection.");
-			}
+		try{
+			checkSimplePoll();
 			
 			SelfCheckResponseWrapper selfCheck = device.performSelfCheck();
 			if(selfCheck.hasFault()){
@@ -113,10 +112,32 @@ public abstract class AbstractDeviceHandler<E extends Device> implements DeviceH
 			
 			logger.debug("Initialisation succes.");
 			this.initialised = true;
-			
-		} catch (MessageIOException | UnexpectedContentException e) {
-			throw new DeviceHandlingException("Unexpected error during post connect checks.", e);
+		} catch (DeviceRequestException e){
+			throw new DeviceHandlingException("Cannot perform initialisation: " + e, e);
 		}
+	}
+	
+	/**
+	 * Perform a simple poll with N retries to ensure device 
+	 * is responding
+	 * @throws DeviceRequestException 
+	 * @throws DeviceHandlingException 
+	 */
+	private void checkSimplePoll() throws DeviceHandlingException{
+		int tryCount = 3;
+		for(int i=0; i<tryCount; i++){
+			try {
+				device.simplePoll();
+				return; //simple poll OK
+			} catch (DeviceRequestException e) {
+				if(e instanceof DeviceRequestTimeoutException){
+					logger.warn("Cannot simple a simple poll: timeout. Try count is: {}", i);
+				} else {
+					throw new DeviceHandlingException("Simple poll error: " + e, e);
+				}
+			}
+		}
+		throw new DeviceHandlingException("Cannot perform a simple poll after " + tryCount + " attempt ended in timeout.");
 	}
 	
 	/**

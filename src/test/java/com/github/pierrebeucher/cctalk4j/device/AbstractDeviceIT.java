@@ -5,7 +5,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.SerialMessagePort;
@@ -13,7 +12,6 @@ import com.github.pierrebeucher.cctalk4j.core.Utils;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.CRCChecksumMessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
-import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
 
 public class AbstractDeviceIT {
 	
@@ -93,19 +91,18 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void simplePoll() throws MessageIOException, UnexpectedContentException {
+	public void simplePoll() throws DeviceRequestException, MessagePortException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
-			boolean pollResult = device.simplePoll();
-			Assert.assertEquals(pollResult, true);
+			device.simplePoll();
 		} finally {
 			device.disconnect();
 		}
 	}
 
 	@Test
-	public void requestBuildCode() throws MessageIOException, UnexpectedContentException {
+	public void requestBuildCode() throws DeviceRequestException, MessagePortException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
@@ -117,7 +114,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestEquipmentCategoryId() throws MessageIOException, UnexpectedContentException {
+	public void requestEquipmentCategoryId() throws DeviceRequestException, MessagePortException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
@@ -129,7 +126,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestManufacturerId() throws MessageIOException, UnexpectedContentException {
+	public void requestManufacturerId() throws DeviceRequestException, MessagePortException {
 		Device device =	this.buildTestDevice();
 		try{
 			device.connect();
@@ -141,7 +138,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestProductCode() throws MessageIOException, UnexpectedContentException {
+	public void requestProductCode() throws DeviceRequestException, MessagePortException {
 		Device device =	this.buildTestDevice();
 		try{
 			device.connect();
@@ -153,7 +150,7 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void performSelfCheck_nominal() throws MessageIOException, UnexpectedContentException{
+	public void performSelfCheck_nominal() throws DeviceRequestException, MessagePortException{
 		Device device =	this.buildTestDevice();
 		try{
 			device.connect();

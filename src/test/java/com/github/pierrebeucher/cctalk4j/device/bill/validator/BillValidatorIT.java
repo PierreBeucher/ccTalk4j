@@ -16,6 +16,7 @@ import com.github.pierrebeucher.cctalk4j.core.MessageFactory;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
+import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.BillIdResponseWrapper;
@@ -97,34 +98,34 @@ public class BillValidatorIT {
 	}
 	
 	@Test
-	public void readBufferedNoteEvents_nominal() throws MessageIOException, UnexpectedContentException {
+	public void readBufferedNoteEvents_nominal() throws DeviceRequestException {
 		BillEventBuffer eventBuf = billValidator.readBufferedNoteEvents();
 		Assert.assertEquals(eventBuf.getBillEvents().length, 5);
 	}
 	
 	@Test
-	public void requestMasterInhibitStatus() throws MessageIOException, UnexpectedContentException{
+	public void requestMasterInhibitStatus() throws DeviceRequestException{
 		billValidator.modifyMasterInhibitStatus(true);
 		boolean inhibit = billValidator.requestMasterInhibitStatus();
 		Assert.assertEquals(inhibit, true);
 	}
 	
 	@Test
-	public void modifyMasterInhibitStatus_true() throws MessageIOException, UnexpectedContentException{
+	public void modifyMasterInhibitStatus_true() throws DeviceRequestException{
 		billValidator.modifyMasterInhibitStatus(true);
 		boolean inhibit = billValidator.requestMasterInhibitStatus();
 		Assert.assertEquals(inhibit, true);
 	}
 	
 	@Test
-	public void modifyMasterInhibitStatus_false() throws MessageIOException, UnexpectedContentException{
+	public void modifyMasterInhibitStatus_false() throws DeviceRequestException{
 		billValidator.modifyMasterInhibitStatus(false);
 		boolean inhibit = billValidator.requestMasterInhibitStatus();
 		Assert.assertEquals(inhibit, false);
 	}
 	
 	@Test
-	public void requestInhibitStatus() throws MessageIOException, UnexpectedContentException{
+	public void requestInhibitStatus() throws DeviceRequestException{
 		byte inhibitMask1 = Byte.parseByte("00001010", 2); 
 		byte inhibitMask2 = Byte.parseByte("00000000", 2);
 		InhibitMask expected = new InhibitMask(BitSet.valueOf(new byte[]{inhibitMask1, inhibitMask2}));
@@ -134,7 +135,7 @@ public class BillValidatorIT {
 	}
 	
 	@Test
-	public void modifyInhibitStatus() throws MessageIOException, UnexpectedContentException{
+	public void modifyInhibitStatus() throws DeviceRequestException{
 		byte inhibitMask1 = Byte.parseByte("00001110", 2); 
 		byte inhibitMask2 = Byte.parseByte("00000000", 2);
 		InhibitMask expected = new InhibitMask(BitSet.valueOf(new byte[]{inhibitMask1, inhibitMask2}));
@@ -144,7 +145,7 @@ public class BillValidatorIT {
 	}
 	
 	@Test
-	public void requestBillId_1() throws MessageIOException, UnexpectedContentException{
+	public void requestBillId_1() throws DeviceRequestException, UnexpectedContentException{
 		Message expectedMessage = MessageFactory.messageCRCChecksum((byte)1, Header.NONE, billType1Ascii.getBytes());
 		BillIdResponseWrapper expected = BillIdResponseWrapper.wrap(expectedMessage);
 		BillIdResponseWrapper actual = billValidator.requestBillId((byte) 1);
@@ -158,7 +159,7 @@ public class BillValidatorIT {
 	 * @throws UnexpectedContentException
 	 */
 	@Test
-	public void modifyBillId() throws MessageIOException, UnexpectedContentException{
+	public void modifyBillId() throws DeviceRequestException{
 		BillIdResponseWrapper billBefore = billValidator.requestBillId(unprogrammedBillType);
 		if(BillIdResponseWrapper.isProgrammed(billBefore)){
 			throw new RuntimeException("Cannot test modifyBillId() on programmed bill " +
@@ -182,13 +183,13 @@ public class BillValidatorIT {
 	}
 	
 	@Test
-	public void requestCountryScalingFactor_scalingFactor() throws MessageIOException, UnexpectedContentException{
+	public void requestCountryScalingFactor_scalingFactor() throws DeviceRequestException{
 		CountryScalingFactorWrapper wp = billValidator.requestCountryScalingFactor("XO");
 		Assert.assertEquals(wp.getScalingFactor(), this.scalingFactor);
 	}
 	
 	@Test
-	public void requestCountryScalingFactor_decimalPlace() throws MessageIOException, UnexpectedContentException{
+	public void requestCountryScalingFactor_decimalPlace() throws DeviceRequestException{
 		CountryScalingFactorWrapper wp = billValidator.requestCountryScalingFactor("XO");
 		Assert.assertEquals(wp.getDecimalPlace(), this.decimalPlace);
 	}
@@ -196,7 +197,7 @@ public class BillValidatorIT {
 	//disabled for now, our validator seems to have issue with the route bill command
 	//the command does route the bill, but return value is erratic
 	//@Test
-	public void routeBill() throws MessageIOException, UnexpectedContentException, InterruptedException{
+	public void routeBill() throws DeviceRequestException, InterruptedException{
 		//simulate bill acceptance
 		billValidator.modifyMasterInhibitStatus(true);
 		billValidator.modifyInhibitStatus(new InhibitMask(BitSet.valueOf(new byte[]{-1, -1})));
@@ -214,7 +215,7 @@ public class BillValidatorIT {
 	//well, our bill validator does not seem to be able to change operating mode
 	//disabled for now until we contact find out why
 	//TODO 
-	public void modifyBillOperatingMode() throws MessageIOException, UnexpectedContentException{		
+	public void modifyBillOperatingMode() throws DeviceRequestException{		
 		boolean escrowAfter = true;
 		boolean stackerAfter = false;
 		billValidator.modifyBillOperatingMode(escrowAfter, stackerAfter);
@@ -234,7 +235,7 @@ public class BillValidatorIT {
 	}
 	
 	@Test
-	public void requestBillOperatingMode() throws UnexpectedContentException, MessageIOException{
+	public void requestBillOperatingMode() throws UnexpectedContentException, MessageIOException, DeviceRequestException{
 		BillOperatingModeResponseWrapper response = billValidator.requestBillOperatingMode();
 		Assert.assertEquals(response.isEscrowUsed(), billOperatingModeEscrow);
 		Assert.assertEquals(response.isStackerUsed(), billOperatingModeStacker);
