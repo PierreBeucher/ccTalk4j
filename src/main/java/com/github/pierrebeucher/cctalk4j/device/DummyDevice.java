@@ -1,5 +1,6 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
+import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
 
@@ -85,6 +86,16 @@ public class DummyDevice implements Device {
 
 	@Override
 	public SelfCheckResponseWrapper performSelfCheck() {
+		return null;
+	}
+
+	@Override
+	public void request(Message m) throws DeviceRequestException {
+
+	}
+
+	@Override
+	public Message requestResponse(Message m) throws DeviceRequestException {
 		return null;
 	}
 

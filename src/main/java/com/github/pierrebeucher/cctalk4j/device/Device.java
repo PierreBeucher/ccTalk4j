@@ -1,5 +1,6 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
+import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
@@ -111,5 +112,24 @@ public interface Device {
 	 * @throws MessagePortException 
 	 */
 	SelfCheckResponseWrapper performSelfCheck() throws DeviceRequestException;
+	
+	/**
+	 * Send a request to the device. This method does not expected
+	 * any response from the device, whether its an ACK or another type of response.
+	 * If the device send an answer, it is ignored. To send a request expecting a response,
+	 * use {@link #requestResponse(Message)}.
+	 * @param m message to send
+	 * @throws DeviceRequestException
+	 */
+	void request(Message m) throws DeviceRequestException;
+	
+	/**
+	 * Send a request to the device, and wait for a response.
+	 * To send a message which to does expect a response, use {@link #request(Message)}
+	 * @param m message to send
+	 * @return 
+	 * @throws DeviceRequestException
+	 */
+	Message requestResponse(Message m) throws DeviceRequestException;
 	
 }

@@ -150,7 +150,22 @@ public abstract class AbstractDevice implements Device {
 		}
 	}
 	
-	private Message requestResponse(Message m) throws DeviceRequestException{
+	@Override
+	public void request(Message m) throws DeviceRequestException{
+		logger.debug("Request: {}", m.getHexMessage());
+		try {
+			port.write(m);
+		} catch (MessagePortException e) {
+			throw new DeviceRequestException(e);
+		}
+	}
+	
+	@Override
+	public Message requestResponse(Message m) throws DeviceRequestException{
+		return doRequestResponse(m);
+	}
+	
+	private Message doRequestResponse(Message m) throws DeviceRequestException{
 		//start reading before sending request
 		//this ensure that the response will not be lost
 		//if we first write the message but the response arrive
@@ -160,7 +175,8 @@ public abstract class AbstractDevice implements Device {
 		//normally we should not have to define a timeout as port read already does
 		//just in case...
 		try {
-			port.write(m);
+			request(m);
+			
 			MessageReaderResponse readerResponse = futureResponse.get(readTimeout, TimeUnit.MILLISECONDS);
 			Message responseMessage = readerResponse.getMessage();
 			if(responseMessage == null){
@@ -169,8 +185,12 @@ public abstract class AbstractDevice implements Device {
 				}
 				throw new DeviceRequestException("Unable to read message response, but no exception reported. There is probably a bug in the MessageReaderResponse, please report.");
 			}
+			
+			logger.debug("Read: {}", responseMessage.getHexMessage());
+			
+			
 			return responseMessage;
-		} catch (MessagePortException | InterruptedException | ExecutionException | TimeoutException e) {
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			throw new DeviceRequestException("Error during device request/response:" + e, e);
 		}
 	}
