@@ -1,6 +1,8 @@
 ccTalk4j
 ========
 
+ccTalk implementation for Java
+
 # Getting started
 
 ccTalk4 have 3 main components: `Device`, `DeviceHandler` and ccTalk `Message`.
@@ -172,6 +174,8 @@ or build your own `core.Message` message using one of the available implementati
 
 #### Supported message types
 
+Only CRC 16 Checksum messages available for now.
+
 - CRC 16 Checksum message: fully available
 - Standard message: not implemented yet
 - Encrypted message: not implemented yet
@@ -182,12 +186,14 @@ Available soon.
 
 # Releases
 
-The first 0.1.0 pre-release is still a work in progress. It will have the following features:
-- Basic implementation of ccTalk messaging. Support for CRC 16 checksum messaging on serial port.
-- Minimal recommended implementation for a bill validator
-- Basic implementation of bill validator handler
+## 0.1.0
 
-Feel free to contact me if you wish to participate in the effort or have details.
+First pre-release with usable `BillValidator` and `BillValidatorHandler` and basic features.
+
+Features:
+- Basic implementation of ccTalk messaging. Support for CRC 16 checksum messaging on serial port.
+- Basic implementation for a bill validator
+- Basic implementation of the `BillValidatorHandler`
 
 # Contacts
 

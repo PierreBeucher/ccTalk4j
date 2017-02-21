@@ -71,8 +71,8 @@ public class FutureMessageReader {
 				Message response = this.port.read(timeout);
 				readerResponse.setMessage(response);
 			} catch (Exception e) {
-				logger.warn("Exception encountered when reading message: {}."
-						+ "It will be reported in the message reader response.", e);
+				logger.warn("Exception encountered when reading message. "
+						+ "It will be reported in the message reader response. Caused by:", e);
 				readerResponse.setHasTimedOut(e instanceof MessagePortTimeoutException);
 				readerResponse.setException(e);
 			}
