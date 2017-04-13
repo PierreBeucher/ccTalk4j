@@ -27,6 +27,13 @@ public class RouteBillResponseWrapper extends ResponseWrapper {
 	
 	private Byte errorCode = null;
 	
+	/*
+	 * Whether to throw an exception if response length is not correct
+	 * Some bill validator does not response with a response of length 0 or 1
+	 * TODO allow user to confire this behavior... 
+	 */
+	private boolean ignoreIncorrectResponseLength=true;
+	
 	protected RouteBillResponseWrapper(Message message) throws UnexpectedContentException {
 		super(message);
 	}
@@ -42,7 +49,9 @@ public class RouteBillResponseWrapper extends ResponseWrapper {
 				this.errorCode = message.getDataBytes()[0];
 				break;
 			default:
-				throw new UnexpectedContentException("Route bill response payload length must be 0 or 1.");
+				if(!ignoreIncorrectResponseLength){
+					throw new UnexpectedContentException("Route bill response payload length must be 0 or 1, but is " + message.getDataBytes().length);
+				}
 		}
 		
 	}
