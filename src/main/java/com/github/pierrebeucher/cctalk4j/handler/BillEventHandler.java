@@ -28,17 +28,20 @@ import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
  * once its maximal size is reached, with older <code>BillEventBuffer</code> being
  * removed.</p>
  * 
- * <p>Example considering the following <code>BillEventBuffer</code> instances:
+ * <p>Example considering the following <code>BillEventBuffer</code> being polled from a device, one after another:
  * <pre>{@code
  * //eventA is the oldest event, eventC the most recent
+ * buf0 = {counter=2| eventC, eventB}
  * buf1 = {counter=3| eventC, eventB, eventA}
  * buf2 = {counter=3| eventC, eventB, eventA}
  * buf3 = {counter=5| eventE, eventD, eventC, eventB, eventA}
  * }</pre>
- * Then calling:
+ * When starting the device, 2 events were already present. These must be ignored as we cannot know if they were already processed,
+ * thus using <code>handler.initEventBuffer(buf0)</code>. Then, we can make calls to {@link #feed(BillEventBuffer)} for event buffers polled afterward.
  * <pre>
  * {@code
  * 	BillEventHandler handler = new SomeBillEventHandler();
+ *  handler.initEventBuffer(buf0);
  * 	handler.feed(buf1);
  * 	handler.feed(buf2);
  * 	handler.feed(buf3);
@@ -113,6 +116,11 @@ class BillEventHandler {
 	 */
 	private BillValidatorHandler handler;
 	
+	/*
+	 * Whteher the event buffer queue has been initialised
+	 */
+	private boolean eventBufferQueueInitialised;
+	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	/**
@@ -123,6 +131,7 @@ class BillEventHandler {
 	 */
 	public BillEventHandler(BillValidatorHandler handler, int bufferDequeMaxSize) {
 		super();
+		this.eventBufferQueueInitialised = false;
 		this.handler = handler;
 		this.eventBufferDequeMaxSize = bufferDequeMaxSize;
 		this.eventBufferDeque = new LinkedBlockingDeque<BillEventBuffer>(bufferDequeMaxSize);
@@ -139,7 +148,26 @@ class BillEventHandler {
 	}
 	
 	/**
+	 * <p>Initialise this <code>BillValidatorHandler</code> evet buffer queue with an initial event buffer.
+	 * This event buffer is then used as base when other buffers are fed with {@link #feed(BillEventBuffer)}
+	 * to detect new events. <b>Initializing an event handler more than once with this method will throw a runtime exception</b></p>
+	 * <p> This method should be called every time event lisetning begin on a device to ensure old
+	 * events already processed by other instances of an event handler are not processed again. This
+	 * method will simply add the given event buffer to the internal queue to make ensure that
+	 * following calls to {@link #feed(BillEventBuffer)} will not trigger listener for old events.</p>
+	 */
+	public void initEventBufferQueue(BillEventBuffer buf){
+		if(eventBufferQueueInitialised){
+			throw new RuntimeException("An event buffer cannot be initialised more than once.");
+		}
+		this.pushEventBuffer(buf);
+		this.eventBufferQueueInitialised = true;
+	}
+	
+	/**
 	 * <p>Feed a new <code>BillEventBuffer</code> to this <code>BillEventHandler</code>.
+	 * This event handler must have been initialised with {@link #initEventBufferQueue(BillEventBuffer)} before
+	 * using this method.
 	 * By feeding an event buffer, the handler will check for any new event by comparing
 	 * the currentEventCounter with the eventCounter held in the given buffer. If any
 	 * new event has been added, {@link #notifyNewEvent(BillEvent)} will be called for each new events,
@@ -156,6 +184,10 @@ class BillEventHandler {
 	 * @param eventBuffer new event buffer to feed
 	 */
 	public void feed(BillEventBuffer eventBuffer){
+		if(!isEventBufferQueueInitialised()){
+			throw new RuntimeException("Cannot feed new events without initialision of the event buffer queue. Make sure to call initEventBufferQueue() before using this method.");
+		}
+		
 		logger.debug("New BillEventBuffer fed: {} - previous buffer: {}", eventBuffer, peekPreviousEventBuffer());
 		BillEvent[] events = extractNewEvents(eventBuffer);
 		
@@ -310,5 +342,10 @@ class BillEventHandler {
 	public Collection<BillEventListener> getEventListeners() {
 		return eventListeners;
 	}
+
+	public boolean isEventBufferQueueInitialised() {
+		return eventBufferQueueInitialised;
+	}
+
 	
 }

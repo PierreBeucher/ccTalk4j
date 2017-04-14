@@ -20,6 +20,8 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContent
 
 public class BillEventHandlerTest {
 
+	private static final BillEventBuffer emptyBuffer = new BillEventBuffer(new BillEvent[]{}, (byte)0);
+	
 	//a few dummy events
 	private BillEvent event00 = new BillEvent((byte)0, (byte)0, Event.MASTER_INHIBIT_ACTIVE, EventType.STATUS);
 	private BillEvent event10 = new BillEvent((byte)1, (byte)0, Event.BILL_VALIDATED_CASHBOX, EventType.CREDIT);
@@ -36,6 +38,7 @@ public class BillEventHandlerTest {
 	//desactivad for the moment, consuming too much time 
 	public void billEventHandlerEventCount() throws DeviceRequestException, MessagePortException{
 		BillEventHandler handler = new BillEventHandler(null);
+		handler.initEventBufferQueue(emptyBuffer);
 		BillValidator validator = DeviceFactory.billValidatorSerialCRC("COM6", (byte)40);
 		try{
 			validator.connect();
@@ -93,6 +96,8 @@ public class BillEventHandlerTest {
 	@Test
 	public void feed_nominal() {
 		BillEventHandler handler = new BillEventHandler(null);
+		handler.initEventBufferQueue(emptyBuffer);
+		
 		BillEventBuffer buf = new BillEventBuffer(new BillEvent[]{event00, event10, event00, event00, event00}, (byte)2);
 		handler.feed(buf);
 		
@@ -105,6 +110,7 @@ public class BillEventHandlerTest {
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event42, event10}, (byte)2);
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event10, event21, event42}, (byte)3);
 		BillEventHandler handler = new BillEventHandler(null, 1); //dequeue with 1 capacity
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -118,6 +124,7 @@ public class BillEventHandlerTest {
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event42, event10}, (byte)2);
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event10, event21, event42}, (byte)3);
 		BillEventHandler handler = new BillEventHandler(null, 2);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -131,6 +138,7 @@ public class BillEventHandlerTest {
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event42, event10, event21, event42, event10}, (byte)2);
 		BillEventBuffer buf3 = new BillEventBuffer(new BillEvent[]{event00, event42, event10, event21, event42}, (byte)3);
 		BillEventHandler handler = new BillEventHandler(null, 3);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -149,6 +157,7 @@ public class BillEventHandlerTest {
 		byte counter = 3;
 		BillEventBuffer buf = new BillEventBuffer(new BillEvent[]{event00, event10}, counter);
 		BillEventHandler handler = new BillEventHandler(null);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf);
 		
 		Assert.assertEquals(handler.getCurrentEventCounter(), counter);
@@ -159,9 +168,11 @@ public class BillEventHandlerTest {
 		BillEventBuffer buf1 = new BillEventBuffer(new BillEvent[]{event00}, (byte)1);
 		BillEventBuffer buf2 = new BillEventBuffer(new BillEvent[]{event21, event10, event00}, (byte)3);
 		BillEventHandler handler = new BillEventHandler(null);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		
+		Assert.assertEquals(handler.getEventBufferDeque().poll(), emptyBuffer);
 		Assert.assertEquals(handler.getEventBufferDeque().poll(), buf1);
 		Assert.assertEquals(handler.getEventBufferDeque().poll(), buf2);
 	}
@@ -179,6 +190,7 @@ public class BillEventHandlerTest {
 		BillEventHandler handler = new BillEventHandler(null);
 		TestBillEventListener listener = new TestBillEventListener();
 		handler.addListener(listener);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		
@@ -219,6 +231,7 @@ public class BillEventHandlerTest {
 		BillEventHandler handler = new BillEventHandler(null);
 		TestBillEventListener listener = new TestBillEventListener();
 		handler.addListener(listener);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -247,6 +260,7 @@ public class BillEventHandlerTest {
 		BillEventHandler handler = new BillEventHandler(null);
 		TestBillEventListener listener = new TestBillEventListener();
 		handler.addListener(listener);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 	
@@ -281,6 +295,7 @@ public class BillEventHandlerTest {
 		BillEventHandler handler = new BillEventHandler(null);
 		TestBillEventListener listener = new TestBillEventListener();
 		handler.addListener(listener);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		handler.feed(buf3);
@@ -303,6 +318,7 @@ public class BillEventHandlerTest {
 		BillEventHandler handler = new BillEventHandler(null);
 		TestBillEventListener listener = new TestBillEventListener();
 		handler.addListener(listener);
+		handler.initEventBufferQueue(emptyBuffer);
 		handler.feed(buf1);
 		handler.feed(buf2);
 		
@@ -322,6 +338,25 @@ public class BillEventHandlerTest {
 		int size = 4242;
 		BillEventHandler handler = new BillEventHandler(null, size);
 		Assert.assertEquals(handler.getEventBufferQueueMaxSize(),size);
+	}
+	
+	@Test
+	public void initEventBufferQueue_init_true(){
+		BillEventHandler handler = new BillEventHandler(null);
+		handler.initEventBufferQueue(emptyBuffer);
+		Assert.assertEquals(handler.isEventBufferQueueInitialised(), true);
+	}
+	
+	@Test
+	public void initEventBufferQueue_init_false(){
+		BillEventHandler handler = new BillEventHandler(null);
+		Assert.assertEquals(handler.isEventBufferQueueInitialised(), false);
+	}
+	
+	@Test(expectedExceptions = RuntimeException.class)
+	public void initEventBufferQueue_feed_not_init(){
+		BillEventHandler handler = new BillEventHandler(null);
+		handler.feed(new BillEventBuffer(new BillEvent[]{event21, event10, event00, event21, event21}, (byte)7));
 	}
 	
 	private class TestBillEventListener implements BillEventListener{

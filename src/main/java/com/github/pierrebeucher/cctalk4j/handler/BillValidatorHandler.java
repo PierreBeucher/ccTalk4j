@@ -370,13 +370,22 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 			super(device, pollPeriod);
 			this.eventHandler = eventHandler;
 		}
+		
+		protected void beforePollStart() throws CreditPollingException{
+			//initialise the device with the currently in-memory event buffer
+			try {
+				eventHandler.initEventBufferQueue(device.readBufferedNoteEvents());
+			} catch (DeviceRequestException e) {
+				throw new CreditPollingException(e);
+			}
+		}
 
 		@Override
-		protected void doCreditPoll() {
+		protected void doCreditPoll() throws CreditPollingException{
 			try {
 				eventHandler.feed(device.readBufferedNoteEvents());
 			} catch (DeviceRequestException e) {
-				logger.error("Error during credit poll: " + e, e);
+				throw new CreditPollingException(e);
 			}
 		}
 		

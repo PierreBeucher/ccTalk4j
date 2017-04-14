@@ -22,6 +22,10 @@ public class CreditPollingRunnableTest {
 			protected void doCreditPoll() {
 				
 			}
+
+			@Override
+			protected void beforePollStart() throws CreditPollingException {
+			}
 		};
 		device.connect();
 	}

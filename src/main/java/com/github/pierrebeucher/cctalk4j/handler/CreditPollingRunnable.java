@@ -44,21 +44,33 @@ public abstract class CreditPollingRunnable<E extends Device> implements Runnabl
 			throw new RuntimeException("Device needs to be connected before starting credit poll.");
 		}
 		
-		this.continuePolling = true;
-		while(continuePolling){
-			doCreditPoll();
-			try {
-				Thread.sleep(pollPeriod);
-			} catch (InterruptedException e) {
-				logger.error("Poll has been interrupted for {}: {}", this, e);
+		try{
+			beforePollStart();
+			
+			this.continuePolling = true;
+			while(continuePolling){
+				doCreditPoll();
+				try {
+					Thread.sleep(pollPeriod);
+				} catch (InterruptedException e) {
+					logger.error("Poll has been interrupted for {}: {}", this, e);
+				}
 			}
+		} catch (CreditPollingException e){
+			logger.error("FATAL: Unhandled exception during credit poll: " + e + ". Credit poll will stop.", e);
+			throw new RuntimeException(e);
 		}
 	}
 	
 	/**
+	 * Called right before credit poll starts. Perform poll initialisations if required.
+	 */
+	protected abstract void beforePollStart() throws CreditPollingException;
+	
+	/**
 	 * Do perform the credit poll. Called by {@link #run()} periodically.
 	 */
-	protected abstract void doCreditPoll();
+	protected abstract void doCreditPoll() throws CreditPollingException;
 
 	/**
 	 * 
