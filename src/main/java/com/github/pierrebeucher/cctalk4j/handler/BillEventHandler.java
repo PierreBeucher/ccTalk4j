@@ -183,6 +183,13 @@ class BillEventHandler {
 	}
 	
 	/**
+	 * Clear any existing Listener from this <code>EventHandler</code>
+	 */
+	public void clearListeners(){
+		eventListeners.clear();
+	}
+	
+	/**
 	 * 
 	 * @return the previous event buffer, or null if there are none
 	 */

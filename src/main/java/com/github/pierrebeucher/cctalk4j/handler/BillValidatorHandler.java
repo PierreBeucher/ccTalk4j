@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
+import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
 import com.github.pierrebeucher.cctalk4j.device.bill.Bill;
@@ -151,6 +152,16 @@ public class BillValidatorHandler extends AbstractDeviceHandler<BillValidator> {
 	@Override //override for javadoc details
 	public void startInputAcceptance() throws DeviceHandlingException {
 		super.startInputAcceptance();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * Also detach any listener attached to this <code>DeviceHandler</code>
+	 */
+	@Override
+	public void terminate() throws MessagePortException {
+		super.terminate();
+		this.eventHandler.clearListeners();
 	}
 
 	/**
