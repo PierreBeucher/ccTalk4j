@@ -186,7 +186,15 @@ Available soon.
 
 # Releases
 
-## 0.1.0
+## 0.1.0-RC2
+
+Minor improvements and corrections:
+- The ROUTE_BILL response now accepts content length greater than one (this happens with the GBA ST2)
+- Added possibility to clear all event listeners from a DeviceHandler
+- Added initEventBufferQueue() on event handler to initialise event buffer with current event buffer from a device
+- Added isTerminated method() on AbstractDeviceHandler
+
+## 0.1.0-RC1
 
 First pre-release with usable `BillValidator` and `BillValidatorHandler` and basic features.
 
