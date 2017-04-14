@@ -33,6 +33,11 @@ public abstract class AbstractDeviceHandler<E extends Device> implements DeviceH
 	private boolean initialised;
 	
 	/*
+	 * 	wWhether this handler has been terminated
+	 */
+	private boolean terminated;
+	
+	/*
 	 * Whether this handler's device accept input
 	 */
 	private boolean acceptInput;
@@ -44,6 +49,7 @@ public abstract class AbstractDeviceHandler<E extends Device> implements DeviceH
 		super();
 		this.device = device;
 		this.initialised = false;
+		this.terminated = false;
 	}
 	
 	@Override
@@ -161,8 +167,13 @@ public abstract class AbstractDeviceHandler<E extends Device> implements DeviceH
 	 */
 	public void terminate() throws MessagePortException{
 		device.disconnect();
+		this.terminated = true;
 	}
 	
+	public boolean isTerminated() {
+		return terminated;
+	}
+
 	/**
 	 * <p>Start the handled <code>Device</code> input acceptance,
 	 * and start polling the device periodically for credit.</p>
