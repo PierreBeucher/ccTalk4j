@@ -118,6 +118,10 @@ public class BillEvent {
 				eventType = EventType.STATUS;
 				event = Event.UNKNOWN_BILL_TYPE_STACKED;
 				break;
+			case 22:
+				eventType = EventType.STATUS;
+				event = Event.NOTE_JAM_CLEARED;
+				break;
 			default:
 				throw new UnrecognizedEventException("Unrecognized event: resultA=" + resultAInt
 						+ ", resultB=" + resultB);

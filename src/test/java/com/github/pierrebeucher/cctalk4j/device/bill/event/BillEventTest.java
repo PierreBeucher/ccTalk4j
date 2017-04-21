@@ -153,6 +153,11 @@ public class BillEventTest {
 	}
 	
 	@Test
+	public void event_note_jam_cleared() throws UnrecognizedEventException {
+		_event_test((byte)0, (byte)22, Event.NOTE_JAM_CLEARED, EventType.STATUS);
+	}
+	
+	@Test
 	public void equals_true() {
 		BillEvent e1 = new BillEvent(resultA, resultB, event, eventType);
 		BillEvent e2 = new BillEvent(resultA, resultB, event, eventType);
