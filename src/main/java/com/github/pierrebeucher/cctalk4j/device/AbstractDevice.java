@@ -307,4 +307,8 @@ public abstract class AbstractDevice implements Device {
 		return "Device [addr=" + this.deviceAddress + "]";
 	}
 
+	public MessagePort getMessagePort() {
+		return port;
+	}
+
 }

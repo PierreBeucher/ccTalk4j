@@ -91,4 +91,16 @@ public class SerialMessagePort implements MessagePort{
 			throw new MessagePortTimeoutException(e);
 		}
 	}
+
+	/**
+	 * 
+	 * @return the underlying <code>jssc.SerialPort</code> used 
+	 */
+	public SerialPort getSerialPort() {
+		return serialPort;
+	}
+
+	public MessageParser getParser() {
+		return parser;
+	}
 }
