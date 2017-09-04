@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.Device;
+import com.github.pierrebeucher.cctalk4j.device.DeviceConfigurationException;
 import com.github.pierrebeucher.cctalk4j.device.DummyDevice;
 import com.github.pierrebeucher.cctalk4j.handler.CreditPollingRunnable;
 
@@ -16,7 +17,7 @@ public class CreditPollingRunnableTest {
 	private Thread pollerThread;
 	
 	@BeforeClass
-	public void beforeClass() throws MessagePortException{
+	public void beforeClass() throws MessagePortException, DeviceConfigurationException{
 		poller = new CreditPollingRunnable<Device>(device, 200){
 			@Override
 			protected void doCreditPoll() {

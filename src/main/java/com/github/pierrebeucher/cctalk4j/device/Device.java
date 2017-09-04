@@ -1,5 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
+import java.util.List;
+
 import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
@@ -16,10 +18,12 @@ import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContent
 public interface Device {
 
 	/**
-	 * Open a connection to this device.
+	 * Open a connection to this device and call any configurator
+	 * affected to this device.
+	 * @see #addConfigurator(DeviceConfigurator)
 	 * @throws MessagePortException
 	 */
-	public void connect() throws MessagePortException;
+	public void connect() throws MessagePortException, DeviceConfigurationException;
 	
 	/**
 	 * Close any open connection to this device.
@@ -131,5 +135,24 @@ public interface Device {
 	 * @throws DeviceRequestException
 	 */
 	Message requestResponse(Message m) throws DeviceRequestException;
+	
+	/**
+	 * Add a device configurator to this device. The configurator will be called
+	 * upon device connection.
+	 * @see #connect()
+	 * @param c configurator to use
+	 */
+	void addConfigurator(DeviceConfigurator c);
+	
+	/**
+	 * Remove all configurators
+	 */
+	void clearConfigurators();
+	
+	/**
+	 * 
+	 * @return a list containing all configurators currently affected to this device
+	 */
+	List<DeviceConfigurator> getConfigurators();
 	
 }

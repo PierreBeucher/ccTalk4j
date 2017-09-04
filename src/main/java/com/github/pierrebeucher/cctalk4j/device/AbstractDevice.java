@@ -1,5 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.device;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -67,6 +69,8 @@ public abstract class AbstractDevice implements Device {
 	
 	private FutureMessageReader messageReader;
 	
+	private List<DeviceConfigurator> configuratorList;
+	
 	/**
 	 * Create a new <code>BillValidator</code> using the given port.
 	 * @param port message port to use
@@ -83,11 +87,13 @@ public abstract class AbstractDevice implements Device {
 		this.readTimeout = DEFAULT_READ_TIMEOUT;
 		this.writeTimeout = DEFAULT_WRITE_TIMEOUT;
 		this.messageReader = new FutureMessageReader(port);
+		this.configuratorList = new ArrayList<DeviceConfigurator>();
 	}
 	
 	@Override
-	public void connect() throws MessagePortException {
+	public void connect() throws MessagePortException, DeviceConfigurationException {
 		port.open();
+		runConfigurators();
 	}
 
 	@Override
@@ -98,6 +104,12 @@ public abstract class AbstractDevice implements Device {
 	@Override
 	public boolean isConnected() {
 		return port.isOpen();
+	}
+	
+	protected void runConfigurators() throws DeviceConfigurationException{
+		for(DeviceConfigurator conf : getConfigurators()){
+			conf.configureDevice(this);
+		}
 	}
 
 	private MessageBuilder createBuilder(){
@@ -310,5 +322,21 @@ public abstract class AbstractDevice implements Device {
 	public MessagePort getMessagePort() {
 		return port;
 	}
+
+	@Override
+	public void addConfigurator(DeviceConfigurator c) {
+		this.configuratorList.add(c);
+	}
+
+	@Override
+	public void clearConfigurators() {
+		this.configuratorList.clear();
+	}
+
+	@Override
+	public List<DeviceConfigurator> getConfigurators() {
+		return configuratorList;
+	}
+
 
 }

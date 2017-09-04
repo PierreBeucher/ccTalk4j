@@ -15,6 +15,7 @@ import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessageFactory;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
+import com.github.pierrebeucher.cctalk4j.device.DeviceConfigurationException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.InhibitMask;
@@ -82,7 +83,7 @@ public class BillValidatorIT {
 	@BeforeClass
 	public void beforeClass(String portCom, byte address, String billType1Ascii,
 			String billUpdateAscii, byte unprogrammedBillType, short scalingFactor,
-			byte decimalPlace, boolean billOperatingModeEscrow, boolean billOperatingModeStacker) throws MessagePortException {
+			byte decimalPlace, boolean billOperatingModeEscrow, boolean billOperatingModeStacker) throws MessagePortException, DeviceConfigurationException {
 		this.portCom = portCom;
 		this.address = address;
 		this.billType1Ascii = billType1Ascii;

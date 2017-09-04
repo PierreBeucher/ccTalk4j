@@ -62,7 +62,7 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void connect() throws MessagePortException {
+	public void connect() throws MessagePortException, DeviceConfigurationException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
@@ -72,7 +72,7 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void isConnected() throws MessagePortException {
+	public void isConnected() throws MessagePortException, DeviceConfigurationException {
 		Device device = buildTestDevice();
 		try {
 			device.connect();
@@ -83,7 +83,7 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void disconnect() throws MessagePortException {
+	public void disconnect() throws MessagePortException, DeviceConfigurationException {
 		Device device = buildTestDevice();
 		device.connect();
 		device.disconnect();
@@ -91,7 +91,7 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void simplePoll() throws DeviceRequestException, MessagePortException {
+	public void simplePoll() throws DeviceRequestException, MessagePortException, DeviceConfigurationException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
@@ -102,7 +102,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestBuildCode() throws DeviceRequestException, MessagePortException {
+	public void requestBuildCode() throws DeviceRequestException, MessagePortException, DeviceConfigurationException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
@@ -114,7 +114,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestEquipmentCategoryId() throws DeviceRequestException, MessagePortException {
+	public void requestEquipmentCategoryId() throws DeviceRequestException, MessagePortException, DeviceConfigurationException {
 		Device device = buildTestDevice();
 		try{
 			device.connect();
@@ -126,7 +126,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestManufacturerId() throws DeviceRequestException, MessagePortException {
+	public void requestManufacturerId() throws DeviceRequestException, MessagePortException, DeviceConfigurationException {
 		Device device =	this.buildTestDevice();
 		try{
 			device.connect();
@@ -138,7 +138,7 @@ public class AbstractDeviceIT {
 	}
 
 	@Test
-	public void requestProductCode() throws DeviceRequestException, MessagePortException {
+	public void requestProductCode() throws DeviceRequestException, MessagePortException, DeviceConfigurationException {
 		Device device =	this.buildTestDevice();
 		try{
 			device.connect();
@@ -150,7 +150,7 @@ public class AbstractDeviceIT {
 	}
 	
 	@Test
-	public void performSelfCheck_nominal() throws DeviceRequestException, MessagePortException{
+	public void performSelfCheck_nominal() throws DeviceRequestException, MessagePortException, DeviceConfigurationException{
 		Device device =	this.buildTestDevice();
 		try{
 			device.connect();

@@ -4,6 +4,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
+import com.github.pierrebeucher.cctalk4j.device.DeviceConfigurationException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.bill.validator.BillValidator;
@@ -18,7 +19,7 @@ public class BillValidatorHandlerWithSimpleEventListenerIT {
 	
 	@Parameters({"billValidator.comPort", "billValidator.address"})
 	@BeforeClass
-	public void beforeClass(String comPort, int address){
+	public void beforeClass(String comPort, int address) throws DeviceConfigurationException{
 		this.address = Utils.unsignedIntToByte(address);
 		this.comPort = comPort;
 		
@@ -31,9 +32,10 @@ public class BillValidatorHandlerWithSimpleEventListenerIT {
 	 * @throws DeviceHandlingException 
 	 * @throws InterruptedException 
 	 * @throws MessagePortException 
+	 * @throws DeviceConfigurationException 
 	 */
 	//@Test
-	public void acceptanceTest() throws DeviceHandlingException, InterruptedException, MessagePortException{
+	public void acceptanceTest() throws DeviceHandlingException, InterruptedException, MessagePortException, DeviceConfigurationException{
 		device = DeviceFactory.billValidatorSerialCRC(comPort, address);
 		handler = new BillValidatorHandler(device);
 		handler.addListener(new SimpleBillEventListener());
@@ -51,9 +53,10 @@ public class BillValidatorHandlerWithSimpleEventListenerIT {
 	 * @throws DeviceHandlingException
 	 * @throws InterruptedException
 	 * @throws MessagePortException
+	 * @throws DeviceConfigurationException 
 	 */
 	//@Test
-	public void syncTest() throws DeviceHandlingException, InterruptedException, MessagePortException{
+	public void syncTest() throws DeviceHandlingException, InterruptedException, MessagePortException, DeviceConfigurationException{
 		device = DeviceFactory.billValidatorSerialCRC(comPort, address);
 		handler = new BillValidatorHandler(device);
 		handler.addListener(new SimpleBillEventListener());

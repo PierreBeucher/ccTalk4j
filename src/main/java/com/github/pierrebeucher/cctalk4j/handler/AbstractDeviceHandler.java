@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.device.Device;
+import com.github.pierrebeucher.cctalk4j.device.DeviceConfigurationException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceRequestException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceRequestTimeoutException;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
@@ -91,9 +92,9 @@ public abstract class AbstractDeviceHandler<E extends Device> implements DeviceH
 	protected void doConnect() throws DeviceHandlingException{
 		try {
 			device.connect();
-		} catch (MessagePortException e){
+		} catch (MessagePortException | DeviceConfigurationException e){
 			throw new DeviceHandlingException("Cannot connect to device.", e);
-		}
+		} 
 	}
 	
 	/**

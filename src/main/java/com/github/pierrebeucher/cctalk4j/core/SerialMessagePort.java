@@ -1,8 +1,8 @@
 package com.github.pierrebeucher.cctalk4j.core;
 
-import jssc.SerialPort;
-import jssc.SerialPortException;
-import jssc.SerialPortTimeoutException;
+import com.github.pierrebeucher.cctalk4j.serial.JsscSerialPort;
+import com.github.pierrebeucher.cctalk4j.serial.SerialPort;
+import com.github.pierrebeucher.cctalk4j.serial.SerialPortException;
 
 public class SerialMessagePort implements MessagePort{
 	
@@ -11,7 +11,7 @@ public class SerialMessagePort implements MessagePort{
 	private MessageParser parser;
 	
 	public SerialMessagePort(String serialPortName, int messageType){
-		this.serialPort = new SerialPort(serialPortName);
+		this.serialPort = new JsscSerialPort(serialPortName);
 		switch(messageType){
 			case MESSAGE_TYPE_CRC16_CHECKSUM:
 				setParser(new CRCChecksumMessageParser());
@@ -26,7 +26,7 @@ public class SerialMessagePort implements MessagePort{
 	}
 	
 	public SerialMessagePort(String serialPortName, MessageParser parser){
-		this.serialPort = new SerialPort(serialPortName);
+		this.serialPort = new JsscSerialPort(serialPortName);
 		setParser(parser);
 	}
 	
@@ -36,7 +36,7 @@ public class SerialMessagePort implements MessagePort{
 	
 	public void open() throws MessagePortException{
 		try{
-			if(!serialPort.openPort()){
+			if(!serialPort.open()){
 				throw new MessagePortException("Cannot open port, openPort() returned false.");
 			}
 		} catch(SerialPortException e){
@@ -45,16 +45,16 @@ public class SerialMessagePort implements MessagePort{
 	}
 	
 	public boolean isOpen(){
-		return serialPort.isOpened();
+		return serialPort.isOpen();
 	}
 	
 	public boolean isClosed(){
-		return !serialPort.isOpened();
+		return !serialPort.isOpen();
 	}
 	
 	public void close() throws MessagePortException{
 		try{
-			if(!serialPort.closePort()){
+			if(!serialPort.close()){
 				throw new MessagePortException("Cannot open port, closePort() returned false.");
 			}
 		} catch(SerialPortException e){
@@ -81,15 +81,13 @@ public class SerialMessagePort implements MessagePort{
 			
 			//read the remaining message: data, header and checksum/source bytes
 			//no timeout as the remaining bytes should be available
-			byte[] remaining = serialPort.readBytes(dataLength + 3);
+			byte[] remaining = serialPort.readBytes(dataLength + 3, timeout);
 			
 			parser.setMessageBytes(Utils.concat(destAndLength, remaining));
 			return parser.parse();
 		} catch (SerialPortException e) {
 			throw new MessagePortException(e);
-		} catch (SerialPortTimeoutException e) {
-			throw new MessagePortTimeoutException(e);
-		}
+		} 
 	}
 
 	/**

@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.core.Utils;
+import com.github.pierrebeucher.cctalk4j.device.DeviceConfigurationException;
 import com.github.pierrebeucher.cctalk4j.device.DeviceFactory;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEvent;
 import com.github.pierrebeucher.cctalk4j.device.bill.event.BillEventBuffer;
@@ -28,7 +29,7 @@ public class BillValidatorHandlerIT {
 	
 	@Parameters({"billValidator.comPort", "billValidator.address"})
 	@BeforeClass
-	public void beforeClass(String comPort, int address){
+	public void beforeClass(String comPort, int address) throws DeviceConfigurationException{
 		this.address = Utils.unsignedIntToByte(address);
 		this.comPort = comPort;
 		
