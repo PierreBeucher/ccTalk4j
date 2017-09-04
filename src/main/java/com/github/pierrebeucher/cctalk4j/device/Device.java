@@ -5,6 +5,7 @@ import java.util.List;
 import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessageIOException;
 import com.github.pierrebeucher.cctalk4j.core.MessageParsingException;
+import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.UnexpectedContentException;
@@ -154,5 +155,11 @@ public interface Device {
 	 * @return a list containing all configurators currently affected to this device
 	 */
 	List<DeviceConfigurator> getConfigurators();
+	
+	/**
+	 * 
+	 * @return the <code>MessagePort</code> instance used by this device.
+	 */
+	MessagePort getMessagePort();
 	
 }

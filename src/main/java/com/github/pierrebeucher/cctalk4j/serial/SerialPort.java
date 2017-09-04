@@ -39,16 +39,27 @@ public interface SerialPort {
 	boolean isClosed();
 	
 	/**
-	 * Set the port parameters. All parameters are direct except parity 
+	 * <p>Set the port parameters. All parameters are direct except parity 
 	 * which is defined using flag, i.e.:
-	 * <code>setPortParameters(9600, 8, 1, SerialPort.PARITY_NONE)</code>
+	 * <code>setPortParameters(9600, 8, 1, SerialPort.PARITY_NONE)</code>.</p>
+	 * <p>If called before the port is open, will set proper parameters as soon
+	 * when port is opened with {@link #open()} .</p>
 	 * @param baudRate
 	 * @param dataBits 
 	 * @param stopBits 
 	 * @param parity
+	 * @param rtsLineStatus
+	 * @param dtrLineStatus
 	 */
-	void setParameters(int baudRate, int dataBits, int stopBits, int parity, boolean rtsLineStatus, boolean ctsLineStatus) throws SerialPortException;
+	void setParameters(int baudRate, int dataBits, int stopBits, int parity, boolean rtsLineStatus, boolean dtrLineStatus) throws SerialPortException;
 	
+	/**
+	 * Set the flow control, such as {@value #FLOWCONTROL_NONE}.
+	 * If called before the port is open, will set proper parameters as soon
+	 * when port is opened with {@link #open()}
+	 * @param flowControlFlag
+	 * @throws SerialPortException
+	 */
 	void setFlowControl(int flowControlFlag) throws SerialPortException;
 	
 	void setDTR(boolean enabled) throws SerialPortException;
@@ -62,4 +73,8 @@ public interface SerialPort {
 	boolean isRING() throws SerialPortException;
 	
 	boolean isRLSD() throws SerialPortException;
+	
+	void resetInputBuffer() throws SerialPortException;
+	
+	void resetOutputBuffer() throws SerialPortException;
 }

@@ -3,6 +3,7 @@ package com.github.pierrebeucher.cctalk4j.device;
 import java.util.List;
 
 import com.github.pierrebeucher.cctalk4j.core.Message;
+import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.SelfCheckResponseWrapper;
 
@@ -116,4 +117,8 @@ public class DummyDevice implements Device {
 		
 	}
 
+	@Override
+	public MessagePort getMessagePort() {
+		return null;
+	}
 }

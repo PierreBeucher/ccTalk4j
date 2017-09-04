@@ -4,14 +4,27 @@ import com.github.pierrebeucher.cctalk4j.serial.JsscSerialPort;
 import com.github.pierrebeucher.cctalk4j.serial.SerialPort;
 import com.github.pierrebeucher.cctalk4j.serial.SerialPortException;
 
+/**
+ * A <code>MessagePort</code> using a serial port for communication. 
+ * The serial port is configured to respect ccTalk specifications default
+ * parameters: 9600 baud rate, 8 data bits, 1 stop bit, no parity.
+ * @author Pierre Beucher
+ *
+ */
 public class SerialMessagePort implements MessagePort{
+	
+	public static final int DEFAULT_BAUD_RATE = 9600;
+	public static final int DEFAULT_DATA_BITS = 8;
+	public static final int DEFAULT_STOP_BITS = 1;
+	public static final int DEFAULT_PARITY = SerialPort.PARIY_NONE;
+	public static final int DEFAULT_FLOW_CONTROL = SerialPort.FLOWCONTROL_NONE;
 	
 	private SerialPort serialPort;
 	
 	private MessageParser parser;
 	
 	public SerialMessagePort(String serialPortName, int messageType){
-		this.serialPort = new JsscSerialPort(serialPortName);
+		createSerialPort(serialPortName);
 		switch(messageType){
 			case MESSAGE_TYPE_CRC16_CHECKSUM:
 				setParser(new CRCChecksumMessageParser());
@@ -25,9 +38,15 @@ public class SerialMessagePort implements MessagePort{
 		}
 	}
 	
-	public SerialMessagePort(String serialPortName, MessageParser parser){
-		this.serialPort = new JsscSerialPort(serialPortName);
+	public SerialMessagePort(String serialPortName, MessageParser parser) {
+		createSerialPort(serialPortName);
 		setParser(parser);
+	}
+	
+	private void createSerialPort(String portName){
+		this.serialPort = new JsscSerialPort(portName, 
+				DEFAULT_BAUD_RATE, DEFAULT_DATA_BITS, DEFAULT_STOP_BITS, DEFAULT_FLOW_CONTROL, DEFAULT_PARITY,
+				false, false);
 	}
 	
 	protected void setParser(MessageParser parser){
@@ -88,6 +107,17 @@ public class SerialMessagePort implements MessagePort{
 		} catch (SerialPortException e) {
 			throw new MessagePortException(e);
 		} 
+	}
+	
+
+	@Override
+	public void resetInputBuffer() throws SerialPortException {
+		this.serialPort.resetInputBuffer();
+	}
+
+	@Override
+	public void resetOutputBuffer() throws SerialPortException {
+		this.serialPort.resetOutputBuffer();
 	}
 
 	/**

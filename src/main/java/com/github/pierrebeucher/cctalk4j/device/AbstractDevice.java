@@ -14,6 +14,7 @@ import com.github.pierrebeucher.cctalk4j.core.Header;
 import com.github.pierrebeucher.cctalk4j.core.Message;
 import com.github.pierrebeucher.cctalk4j.core.MessagePort;
 import com.github.pierrebeucher.cctalk4j.core.MessagePortException;
+import com.github.pierrebeucher.cctalk4j.serial.SerialPortException;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuildException;
 import com.github.pierrebeucher.cctalk4j.utils.message.builder.MessageBuilder;
 import com.github.pierrebeucher.cctalk4j.utils.message.wrapper.AckWrapper;
@@ -178,6 +179,14 @@ public abstract class AbstractDevice implements Device {
 	}
 	
 	private Message doRequestResponse(Message m) throws DeviceRequestException{
+		//purge everything to void leftover bytes in buffer
+		try{
+			port.resetInputBuffer();
+			port.resetOutputBuffer();
+		} catch (SerialPortException e){
+			throw new DeviceRequestException(e);
+		}
+		
 		//start reading before sending request
 		//this ensure that the response will not be lost
 		//if we first write the message but the response arrive
@@ -319,6 +328,7 @@ public abstract class AbstractDevice implements Device {
 		return "Device [addr=" + this.deviceAddress + "]";
 	}
 
+	@Override
 	public MessagePort getMessagePort() {
 		return port;
 	}

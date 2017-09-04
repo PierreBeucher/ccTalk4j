@@ -1,5 +1,7 @@
 package com.github.pierrebeucher.cctalk4j.core;
 
+import com.github.pierrebeucher.cctalk4j.serial.SerialPortException;
+
 /**
  * <code>MessagePort<code> is used to read and write ccTalk messages. 
  * @author Pierre Beucher
@@ -49,5 +51,16 @@ public interface MessagePort {
 	 * @throws MessageParsingException if read message cannot be parsed (incorrect checksum, incorrect length...)
 	 */
 	public Message read(int timeout) throws MessagePortException, MessageParsingException;
+	
+	/**
+	 * Reset any input buffer that may exists.
+	 * @throws SerialPortException 
+	 */
+	public void resetInputBuffer() throws SerialPortException;
+	
+	/**
+	 * Reset any output buffer that may exists.
+	 */
+	public void resetOutputBuffer() throws SerialPortException;
 	
 }

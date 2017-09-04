@@ -1,11 +1,22 @@
 package com.github.pierrebeucher.cctalk4j.serial;
 
-public class JsscSerialPort implements SerialPort {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class JsscSerialPort extends AbstractSerialPort implements SerialPort {
 
 	private jssc.SerialPort sp;
 	
+	private Logger logger = LoggerFactory.getLogger(getClass());
+	
 	public JsscSerialPort(String portName) {
 		super();
+		this.sp = new jssc.SerialPort(portName);
+	}
+
+	public JsscSerialPort(String portName, int baudRate, int dataBits, int stopBits, int flowControl, int parity,
+			boolean rtsLineStatus, boolean dtrLineStatus) {
+		super(portName, baudRate, dataBits, stopBits, flowControl, parity, rtsLineStatus, dtrLineStatus);
 		this.sp = new jssc.SerialPort(portName);
 	}
 
@@ -40,7 +51,10 @@ public class JsscSerialPort implements SerialPort {
 	@Override
 	public boolean open() throws SerialPortException {
 		try {
-			return sp.openPort();
+			boolean result = sp.openPort();
+			updateFlowControl();
+			updateParameters();
+			return result;
 		} catch (jssc.SerialPortException e) {
 			throw new SerialPortException(e);
 		}
@@ -64,9 +78,8 @@ public class JsscSerialPort implements SerialPort {
 	public boolean isClosed() {
 		return !sp.isOpened();
 	}
-
-	@Override
-	public void setParameters(int baudRate, int dataBits, int stopBits, int parity, boolean rtsLineStatus, boolean dtrLineStatus) throws SerialPortException {
+	
+	protected void setParametersImplWrapper(int baudRate, int dataBits, int stopBits, int parity, boolean rtsLineStatus, boolean dtrLineStatus) throws SerialPortException{
 		int jsscParity = -1;
 		switch(parity){
 		case SerialPort.PARIY_NONE:
@@ -89,17 +102,17 @@ public class JsscSerialPort implements SerialPort {
 		}
 		
 		try {
+			logger.debug("Setting jssc port params: baudRate={}, dataBits={}, stopBits={}, rts={}, dtr={}", baudRate, dataBits, stopBits, rtsLineStatus, dtrLineStatus);
 			//baud rate, data and stop bits are transparent with jssc
-			sp.setParams(jssc.SerialPort.BAUDRATE_9600, jssc.SerialPort.DATABITS_8, jssc.SerialPort.STOPBITS_1, jsscParity, rtsLineStatus, dtrLineStatus);
+			sp.setParams(baudRate, dataBits, stopBits, jsscParity, rtsLineStatus, dtrLineStatus);
 		} catch (jssc.SerialPortException e) {
 			throw new SerialPortException(e);
 		}
 	}
-
-	@Override
-	public void setFlowControl(int flowControlFlag) throws SerialPortException {
+	
+	protected void setFlowControlImplWrapper(int newFlowControl) throws SerialPortException{
 		int jsscFlowControl = -1;
-		switch(flowControlFlag){
+		switch(newFlowControl){
 		case SerialPort.FLOWCONTROL_NONE:
 			jsscFlowControl=jssc.SerialPort.FLOWCONTROL_NONE;
 			break;
@@ -110,13 +123,53 @@ public class JsscSerialPort implements SerialPort {
 			jsscFlowControl=jssc.SerialPort.FLOWCONTROL_XONXOFF_IN;
 			break;
 		default:
-			throw new SerialPortException("No match in jssc serial implementation for flow control: " + flowControlFlag);
+			throw new SerialPortException("No match in jssc serial implementation for flow control: " + newFlowControl);
 		}
 		try {
+			logger.debug("Setting jssc flow control: {}", jsscFlowControl);
 			sp.setFlowControlMode(jsscFlowControl);
 		} catch (jssc.SerialPortException e) {
 			throw new SerialPortException(e);
 		}
+	}
+	
+	/**
+	 * Update the port parameters using currently set attributes. Only apply 
+	 * if port is open.
+	 * @throws SerialPortException 
+	 */
+	protected void updateParameters() throws SerialPortException{
+		if(isOpen()){
+			setParametersImplWrapper(baudRate, dataBits, stopBits, parity, rtsLineStatus, dtrLineStatus);
+		}
+	}
+	
+	/**
+	 * Update the flow control using currently set attributes. Only apply 
+	 * if port is open.
+	 * @throws SerialPortException 
+	 */
+	protected void updateFlowControl() throws SerialPortException{
+		if(isOpen()){
+			setFlowControlImplWrapper(flowControl);
+		}
+	}
+
+	@Override
+	public void setParameters(int baudRate, int dataBits, int stopBits, int parity, boolean rtsLineStatus, boolean dtrLineStatus) throws SerialPortException {
+		this.baudRate = baudRate;
+		this.dataBits = dataBits;
+		this.stopBits = stopBits;
+		this.parity = parity;
+		this.rtsLineStatus = rtsLineStatus;
+		this.dtrLineStatus = dtrLineStatus;
+		this.updateParameters();
+	}
+
+	@Override
+	public void setFlowControl(int flowControlFlag) throws SerialPortException {
+		this.flowControl = flowControlFlag;
+		this.updateFlowControl();
 	}
 
 	@Override
@@ -168,6 +221,26 @@ public class JsscSerialPort implements SerialPort {
 	public boolean isRLSD()  throws SerialPortException {
 		try {
 			return sp.isRLSD();
+		} catch (jssc.SerialPortException e) {
+			throw new SerialPortException(e);
+		}
+	}
+
+	@Override
+	public void resetInputBuffer() throws SerialPortException {
+		purgeBuffer(jssc.SerialPort.PURGE_RXCLEAR);
+	}
+
+	@Override
+	public void resetOutputBuffer() throws SerialPortException {
+		purgeBuffer(jssc.SerialPort.PURGE_TXCLEAR);
+	}
+	
+	private void purgeBuffer(int flag) throws SerialPortException{
+		try {
+			if(!sp.purgePort(flag)){
+				throw new SerialPortException("Cannot purge buffer: purgePort() returned false");
+			}
 		} catch (jssc.SerialPortException e) {
 			throw new SerialPortException(e);
 		}
