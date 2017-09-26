@@ -186,6 +186,14 @@ Available soon.
 
 # Releases
 
+## 0.1.0-RC4
+
+Refactored the Serial Port interface for better separation of principles between the Serial interface and concrete serial implementation.
+
+## 0.1.0-RC3
+
+Added the NOTE_JAM_CLEARED event handling following a few issues. 
+
 ## 0.1.0-RC2
 
 Minor improvements and corrections:
@@ -205,4 +213,4 @@ Features:
 
 # Contacts
 
-Pierre Beucher - beucher.pierre@gmail.com | pierre.beucher@semoa-group.com
+Pierre Beucher - beucher.pierre@gmail.com
